@@ -14,12 +14,12 @@ public class HgCore implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label,
             @NotNull String @NotNull [] args) {
-        if (!sender.hasPermission("hgsopa.admin")) {
+        if (!sender.hasPermission("hg.admin")) {
             sender.sendMessage(ps + "§aVocê não tem permição pra usar esse comando!");
             return false;
         }
         if (args.length == 0) {
-            sender.sendMessage(ps + "Use /" + label + " realod");
+            sender.sendMessage(ps + "Use /" + label + " help");
             return true;
         }
         switch (args[0]) {
@@ -35,9 +35,15 @@ public class HgCore implements CommandExecutor {
                 }
             }
             case "fs": {
-
+                sender.sendMessage(ps + "Em desenvolvimento");
+                return false;
+            }
+            case "help": {
+                sender.sendMessage("");
+                return true;
             }
             default: {
+                sender.sendMessage(ps + "Em desenvolvimento");
                 return false;
             }
         }

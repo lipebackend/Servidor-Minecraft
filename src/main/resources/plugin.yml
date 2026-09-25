@@ -7,10 +7,12 @@ load: POSTWORLD
 author: SeuNome
 
 commands:
-  hg:
-    description: Hg Maneger
-    usage: /hg
-
+  hgc:
+    description: Hg Core
+    usage: /hgc
+  hgm:
+    description: Hg Core
+    usage: /hgc
 
 
 
