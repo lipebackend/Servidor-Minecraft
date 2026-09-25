@@ -17,10 +17,12 @@ public class Regem implements Listener {
             return;
         if (e.getAction() != Action.RIGHT_CLICK_AIR && e.getAction() != Action.RIGHT_CLICK_BLOCK)
             return;
+        if (player.getHealth() == 20)
+            return;
         double vv = player.getHealth() + 3.0;
         player.setHealth(Math.min(vv, player.getMaxHealth()));
         item.setAmount(item.getAmount() - 1);
-        player.getInventory().addItem(new ItemStack(Material.MUSHROOM_STEW));
+        player.getInventory().addItem(new ItemStack(Material.BOW));
         e.setCancelled(true);
     }
 }
