@@ -1,14 +1,14 @@
 package al3ncar.sopaRegemClick.command;
 
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import al3ncar.sopaRegemClick.SopaRegemClick;
 import al3ncar.sopaRegemClick.utils.PrefixoC;
 
-public class SopaReload extends JavaPlugin {
+public class SopaReload implements CommandExecutor {
     private String ps = PrefixoC.PREFIXO;
 
     @Override
@@ -24,7 +24,7 @@ public class SopaReload extends JavaPlugin {
         }
         if (args[0] == "reload") {
             try {
-                reloadConfig();
+                SopaRegemClick.getInts().reloadConfig();
                 sender.sendMessage(ps + "§aConfigurações recarregadas!");
                 return true;
             } catch (Exception e) {
