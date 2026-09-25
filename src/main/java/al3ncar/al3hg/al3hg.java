@@ -1,16 +1,16 @@
-package al3ncar.sopaRegemClick;
+package al3ncar.al3hg;
 
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import al3ncar.sopaRegemClick.command.SopaReload;
-import al3ncar.sopaRegemClick.events.Regem;
+import al3ncar.al3hg.command.HgCore;
+import al3ncar.al3hg.events.Regem;
 
-public final class SopaRegemClick extends JavaPlugin implements Listener {
+public final class al3hg extends JavaPlugin implements Listener {
     // ---------- Privetes -------------------- //
-    private static SopaRegemClick ints;
-    private final SopaReload sop = new SopaReload();
+    private static al3hg ints;
+    private final HgCore hgcore = new HgCore();
     private final Regem rg = new Regem();
 
     // ---------- Plugin -------------------- //
@@ -18,7 +18,7 @@ public final class SopaRegemClick extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         ints = this;
-        getCommand("sopa").setExecutor(sop);
+        getCommand("sopa").setExecutor(hgcore);
         Bukkit.getPluginManager().registerEvents(rg, this);
     }
 
@@ -28,7 +28,7 @@ public final class SopaRegemClick extends JavaPlugin implements Listener {
     }
 
     // ---------- Metodos -------------------- //
-    public static SopaRegemClick getInts() {
+    public static al3hg getInts() {
         return ints;
     }
 }

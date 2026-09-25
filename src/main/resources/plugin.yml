@@ -7,9 +7,9 @@ load: POSTWORLD
 author: SeuNome
 
 commands:
-  sopa:
-    description: reload
-    usage: /sopa
+  hg:
+    description: Hg Maneger
+    usage: /hg
 
 
 

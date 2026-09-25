@@ -1,14 +1,14 @@
-package al3ncar.sopaRegemClick.command;
+package al3ncar.al3hg.command;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
-import al3ncar.sopaRegemClick.SopaRegemClick;
-import al3ncar.sopaRegemClick.utils.PrefixoC;
+import al3ncar.al3hg.al3hg;
+import al3ncar.al3hg.utils.PrefixoC;
 
-public class SopaReload implements CommandExecutor {
+public class HgCore implements CommandExecutor {
     private String ps = PrefixoC.PREFIXO;
 
     @Override
@@ -25,7 +25,7 @@ public class SopaReload implements CommandExecutor {
         switch (args[0]) {
             case "reload": {
                 try {
-                    SopaRegemClick.getInts().reloadConfig();
+                    al3hg.getInts().reloadConfig();
                     sender.sendMessage(ps + "§aConfigurações recarregadas!");
                     return true;
                 } catch (Exception e) {
@@ -33,6 +33,9 @@ public class SopaReload implements CommandExecutor {
                     sender.sendMessage(ps + "§aERRO " + e);
                     return true;
                 }
+            }
+            case "fs": {
+
             }
             default: {
                 return false;

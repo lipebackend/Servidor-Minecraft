@@ -1,6 +1,7 @@
-package al3ncar.sopaRegemClick.events;
+package al3ncar.al3hg.events;
 
 import org.bukkit.Material;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -17,10 +18,10 @@ public class Regem implements Listener {
             return;
         if (e.getAction() != Action.RIGHT_CLICK_AIR && e.getAction() != Action.RIGHT_CLICK_BLOCK)
             return;
-        if (player.getHealth() == player.getMaxHealth())
+        if (player.getHealth() == player.getAttribute(Attribute.MAX_HEALTH).getValue())
             return;
         double vv = player.getHealth() + 3.0;
-        player.setHealth(Math.min(vv, player.getMaxHealth()));
+        player.setHealth(Math.min(vv, player.getAttribute(Attribute.MAX_HEALTH).getValue()));
         item.setAmount(item.getAmount() - 1);
         player.getInventory().addItem(new ItemStack(Material.BOWL));
         e.setCancelled(true);
