@@ -1,0 +1,16 @@
+name: SopaRegemClick
+version: '${version}'
+
+main: al3ncar.sopaRegemClick.SopaRegemClick
+api-version: '1.21.11'
+load: POSTWORLD
+author: SeuNome
+
+commands:
+  sopa:
+    description: reload
+    usage: /sopa
+
+
+
+

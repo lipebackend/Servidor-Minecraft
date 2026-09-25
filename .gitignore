@@ -1,0 +1,475 @@
+# =========================================================
+# Java
+# =========================================================
+
+# Compilados
+*.class
+*.jar
+*.war
+*.ear
+
+# JVM crash logs
+hs_err_pid*
+replay_pid*
+
+# =========================================================
+# Maven
+# =========================================================
+
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+.flattened-pom.xml
+
+# Maven wrapper
+.mvn/timing.properties
+
+# =========================================================
+# Gradle
+# =========================================================
+
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# =========================================================
+# IntelliJ IDEA
+# =========================================================
+
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# IntelliJ workspace
+workspace.xml
+tasks.xml
+usage.statistics.xml
+dictionaries/
+shelf/
+
+# IntelliJ compiler
+*.class
+
+# =========================================================
+# Eclipse
+# =========================================================
+
+.classpath
+.project
+.settings/
+.factorypath
+.buildpath
+
+# =========================================================
+# NetBeans
+# =========================================================
+
+/nbproject/private/
+/nbbuild/
+/dist/
+/.nb-gradle/
+nb-configuration.xml
+nbactions.xml
+
+# =========================================================
+# VS Code
+# =========================================================
+
+.vscode/
+*.code-workspace
+
+# =========================================================
+# Visual Studio
+# =========================================================
+
+.vs/
+*.user
+*.userossc
+*.sln.docstates
+
+# =========================================================
+# OS
+# =========================================================
+
+# Linux
+*~
+.directory
+.Trash-*
+.nfs*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumb_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# =========================================================
+# Logs
+# =========================================================
+
+*.log
+logs/
+log/
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================================================
+# Environment / Secrets
+# =========================================================
+
+.env
+.env.*
+!.env.example
+!.env.template
+
+*.secret
+*.secrets
+*.key
+*.pem
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# API keys / credentials
+credentials.json
+secrets.json
+config.local.*
+config.private.*
+
+# =========================================================
+# Temporary files
+# =========================================================
+
+*.tmp
+*.temp
+*.swp
+*.swo
+*.bak
+*.backup
+*.orig
+*.rej
+*.old
+*.cache
+
+# =========================================================
+# Archives
+# =========================================================
+
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.iso
+
+# =========================================================
+# Node.js
+# =========================================================
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.npm/
+.yarn/
+.pnp/
+.pnp.js
+
+# Build
+dist/
+.next/
+.nuxt/
+.output/
+.cache/
+
+# =========================================================
+# Python
+# =========================================================
+
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.tox/
+.nox/
+
+.venv/
+venv/
+env/
+ENV/
+
+*.egg
+*.egg-info/
+dist/
+build/
+
+# =========================================================
+# C / C++
+# =========================================================
+
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dll
+*.dylib
+*.exe
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+
+# =========================================================
+# Rust
+# =========================================================
+
+target/
+Cargo.lock
+
+# =========================================================
+# Go
+# =========================================================
+
+bin/
+vendor/
+
+# =========================================================
+# Kotlin
+# =========================================================
+
+.kotlin/
+*.kotlin_module
+
+# =========================================================
+# Android
+# =========================================================
+
+.gradle/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+
+# =========================================================
+# Minecraft Development
+# =========================================================
+
+# Servidor local
+server/
+servers/
+run/
+runtime/
+
+# Paper / Spigot / Bukkit
+plugins/
+world/
+world_nether/
+world_the_end/
+
+# Outros mundos
+worlds/
+
+# Logs do servidor
+logs/
+
+# Configurações geradas localmente
+bukkit.yml
+spigot.yml
+commands.yml
+server.properties
+eula.txt
+
+# Paper
+config/paper-world-defaults.yml
+config/paper-global.yml
+
+# Gerado pelo servidor
+cache/
+libraries/
+
+# Crash reports
+crash-reports/
+
+# User cache
+usercache.json
+usernamecache.json
+whitelist.json
+ops.json
+banned-players.json
+banned-ips.json
+
+# =========================================================
+# Minecraft Plugin IDE / Build
+# =========================================================
+
+# Test servers
+test-server/
+testserver/
+dev-server/
+devserver/
+
+# Local plugin jars
+*.jar
+
+# =========================================================
+# Database
+# =========================================================
+
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+
+# MySQL dumps
+*.sql
+*.sql.gz
+
+# =========================================================
+# Docker
+# =========================================================
+
+docker-compose.override.yml
+.docker/
+docker-data/
+docker-volumes/
+
+# =========================================================
+# Terraform
+# =========================================================
+
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+
+# =========================================================
+# Coverage / Testing
+# =========================================================
+
+coverage/
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+test-results/
+surefire-reports/
+failsafe-reports/
+
+# =========================================================
+# Documentation generated
+# =========================================================
+
+site/
+docs/_build/
+
+# =========================================================
+# AI / Coding Agents
+# =========================================================
+
+# OpenCode
+.opencode/
+.opencode/*
+!.opencode/AGENTS.md
+
+# Claude
+.claude/
+CLAUDE.local.md
+
+# Cursor
+.cursor/
+
+# GitHub Copilot
+.github/copilot/
+
+# =========================================================
+# Local configuration
+# =========================================================
+
+*.local
+*.local.*
+local/
+.local/
+
+# =========================================================
+# Backups
+# =========================================================
+
+*.orig
+*.save
+*.bak
+*.backup
+*~
+
+# =========================================================
+# Generated files
+# =========================================================
+
+generated/
+generated-sources/
+generated-test-sources/
+
+# =========================================================
+# IDE metadata
+# =========================================================
+
+.classpath
+.project
+.settings/
+.factorypath
+.loadpath
+
+# =========================================================
+# OS / File manager
+# =========================================================
+
+# Linux editors
+*.kate-swp
+*.vim
+*.swn
+*.swo
+
+# =========================================================
+# Git
+# =========================================================
+
+*.patch
+*.diff
+
+# Keep important example files
+!.env.example
+!.env.template
+!config.example.yml
+!config.example.yaml
+!config.example.json
