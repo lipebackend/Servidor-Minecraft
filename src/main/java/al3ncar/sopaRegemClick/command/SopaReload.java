@@ -22,17 +22,21 @@ public class SopaReload implements CommandExecutor {
             sender.sendMessage(ps + "Use /" + label + " realod");
             return true;
         }
-        if (args[0] == "reload") {
-            try {
-                SopaRegemClick.getInts().reloadConfig();
-                sender.sendMessage(ps + "§aConfigurações recarregadas!");
-                return true;
-            } catch (Exception e) {
-                sender.sendMessage(ps + "§aFalha a recarregar o plugin");
-                sender.sendMessage(ps + "§aERRO " + e);
-                return true;
+        switch (args[0]) {
+            case "reload": {
+                try {
+                    SopaRegemClick.getInts().reloadConfig();
+                    sender.sendMessage(ps + "§aConfigurações recarregadas!");
+                    return true;
+                } catch (Exception e) {
+                    sender.sendMessage(ps + "§aFalha a recarregar o plugin");
+                    sender.sendMessage(ps + "§aERRO " + e);
+                    return true;
+                }
+            }
+            default: {
+                return false;
             }
         }
-        return false;
     }
 }
