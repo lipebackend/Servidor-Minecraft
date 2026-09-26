@@ -1,16 +1,13 @@
-name: SopaRegemClick
+name: Al3HG
 version: '${version}'
 
-main: al3ncar.sopaRegemClick.SopaRegemClick
+main: al3ncar.al3hg.al3hg
 api-version: '1.21.11'
 load: POSTWORLD
-author: SeuNome
+author: Dedectr
 
 commands:
   hgc:
-    description: Hg Core
-    usage: /hgc
-  hgm:
     description: Hg Core
     usage: /hgc
 

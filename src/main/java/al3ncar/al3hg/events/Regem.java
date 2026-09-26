@@ -24,6 +24,8 @@ public class Regem implements Listener {
         player.setHealth(Math.min(vv, player.getAttribute(Attribute.MAX_HEALTH).getValue()));
         item.setAmount(item.getAmount() - 1);
         player.getInventory().addItem(new ItemStack(Material.BOWL));
+        player.setFoodLevel(20);
+        player.setSaturation(20.0f);
         e.setCancelled(true);
     }
 }

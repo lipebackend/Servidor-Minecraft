@@ -24,7 +24,9 @@ public class Refil {
         ShapelessRecipe sopaCacto = new ShapelessRecipe(SopaCacto, sopaFeita);
         sopaCacto.addIngredient(Material.CACTUS);
         sopaCacto.addIngredient(Material.BOWL);
+
         // Registro da receipe //
         Bukkit.getServer().addRecipe(sopaCocoa);
+        Bukkit.getServer().addRecipe(sopaCacto);
     }
 }

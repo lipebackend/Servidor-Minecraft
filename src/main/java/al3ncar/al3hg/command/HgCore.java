@@ -39,11 +39,12 @@ public class HgCore implements CommandExecutor {
                 return false;
             }
             case "help": {
-                sender.sendMessage("");
+                sender.sendMessage(ps + "/hgc reload > Reload do plugin");
+                sender.sendMessage(ps + "/hgc fs > Fast Start partida");
                 return true;
             }
             default: {
-                sender.sendMessage(ps + "Em desenvolvimento");
+                sender.sendMessage(ps + "ERRO na syntax");
                 return false;
             }
         }

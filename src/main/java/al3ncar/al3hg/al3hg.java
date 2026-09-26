@@ -5,9 +5,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import al3ncar.al3hg.command.HgCore;
-import al3ncar.al3hg.command.HgManegar;
 import al3ncar.al3hg.events.Refil;
 import al3ncar.al3hg.events.Regem;
+import al3ncar.al3hg.manager.HgManegar;
 
 public final class al3hg extends JavaPlugin implements Listener {
     // ---------- Privetes -------------------- //
@@ -21,10 +21,8 @@ public final class al3hg extends JavaPlugin implements Listener {
     public void onEnable() {
         ints = this;
         getCommand("hgc").setExecutor(hgcore);
-        getCommand("hgm").setExecutor(hgmanegar);
-        Refil.RegisterRecipeMethods();
         Bukkit.getPluginManager().registerEvents(rg, this);
-
+        Refil.RegisterRecipeMethods();
     }
 
     @Override
