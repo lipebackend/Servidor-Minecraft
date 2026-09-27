@@ -8,6 +8,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
  
 import al3ncar.al3hg.utils.PrefixoC;
 import al3ncar.al3hg.partida.Maneger;
+import al3ncar.al3hg.partida.PartidaRolando;
 
 public class JoinManeger implements Listener {
     private String ps = PrefixoC.PREFIXO;
@@ -17,5 +18,6 @@ public class JoinManeger implements Listener {
         p.setGameMode(GameMode.ADVENTURE);
         Maneger.getPartida().adicionarJogadores(p);
         p.sendMessage(ps + "Iniciando a partida em alguns segundos");
+        
     }
 }

@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 
 import al3ncar.al3hg.al3hg;
 import al3ncar.al3hg.partida.Maneger;
+import al3ncar.al3hg.partida.PartidaRolando;
 import al3ncar.al3hg.partida.StatsPartida;
 import al3ncar.al3hg.utils.EnviarServer;
 import al3ncar.al3hg.utils.PrefixoC;
@@ -16,6 +17,7 @@ import al3ncar.al3hg.utils.PrefixoC;
 public class HgCore implements CommandExecutor {
     private static StatsPartida a;
     private String ps = PrefixoC.PREFIXO;
+    private final PartidaRolando b = new PartidaRolando();
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label,
@@ -45,6 +47,7 @@ public class HgCore implements CommandExecutor {
                     sender.sendMessage(ps + "Iniciando a partida em " + a);
                 }
                 Maneger.getPartida().setStatusP(a.MEIO);
+                b.Partidakk();
                 return true;
             }
             case "stop": {

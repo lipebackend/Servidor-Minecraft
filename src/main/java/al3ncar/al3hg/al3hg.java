@@ -9,6 +9,8 @@ import al3ncar.al3hg.craft.Refil;
 import al3ncar.al3hg.events.JoinManeger;
 import al3ncar.al3hg.events.Regem;
 import al3ncar.al3hg.events.RemoverDaPartidaDead;
+import al3ncar.al3hg.partida.Maneger;
+import al3ncar.al3hg.partida.Partida;
 import al3ncar.al3hg.partida.PartidaRolando;
 
 public final class al3hg extends JavaPlugin implements Listener {
@@ -27,9 +29,9 @@ public final class al3hg extends JavaPlugin implements Listener {
         Bukkit.getPluginManager().registerEvents(rg, ints);
         Bukkit.getPluginManager().registerEvents(jn, ints);
         Bukkit.getPluginManager().registerEvents(rdead, ints);
+        Maneger.init();
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
         Refil.RegisterRecipeMethods();
-        new PartidaRolando().Partidakk(); 
     }
 
     @Override
