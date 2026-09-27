@@ -1,9 +1,5 @@
 package al3ncar.al3hg.partida;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
 public class Maneger {
     private static Partida instance;
 

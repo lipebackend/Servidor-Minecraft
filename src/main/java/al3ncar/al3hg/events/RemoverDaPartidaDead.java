@@ -28,7 +28,6 @@ public class RemoverDaPartidaDead implements Listener {
     @EventHandler
     public void onRespwam(PlayerRespawnEvent e) {
         Player p = e.getPlayer();
-
         EnviarServer.SendServer(p, "lobby");
     }
 }

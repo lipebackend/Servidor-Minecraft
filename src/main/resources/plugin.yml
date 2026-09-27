@@ -1,15 +1,36 @@
 name: Al3HG
 version: '${version}'
-
 main: al3ncar.al3hg.al3hg
 api-version: '1.21.11'
-load: STARTUP   
+load: STARTUP
 author: Dedectr
+
+permissions:
+  hg.admin:
+    description: Permissão para comandos do plugin
 
 commands:
   hgc:
     description: Hg Core
     usage: /hgc
-
-
-
+    permission: hg.admin
+  
+  hgc fs:
+    description: Inicia a partida rapidamente
+    usage: /hgc fs
+    permission: hg.admin
+  
+  hgc stop:
+    description: Para a partida e volta todos ao lobby
+    usage: /hgc stop
+    permission: hg.admin
+  
+  hgc rest:
+    description: Reinicia a partida
+    usage: /hgc rest
+    permission: hg.admin
+  
+  hgc help:
+    description: Mostra ajuda dos comandos
+    usage: /hgc help
+    permission: hg.admin
