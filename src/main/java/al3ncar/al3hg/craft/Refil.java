@@ -1,4 +1,4 @@
-package al3ncar.al3hg.events;
+package al3ncar.al3hg.craft;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;

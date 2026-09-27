@@ -5,15 +5,13 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import al3ncar.al3hg.command.HgCore;
-import al3ncar.al3hg.events.Refil;
+import al3ncar.al3hg.craft.Refil;
 import al3ncar.al3hg.events.Regem;
-import al3ncar.al3hg.manager.HgManegar;
 
 public final class al3hg extends JavaPlugin implements Listener {
     // ---------- Privetes -------------------- //
     private static al3hg ints;
     private final HgCore hgcore = new HgCore();
-    private final HgManegar hgmanegar = new HgManegar();
     private final Regem rg = new Regem();
     // ---------- Plugin -------------------- //
 
@@ -22,6 +20,7 @@ public final class al3hg extends JavaPlugin implements Listener {
         ints = this;
         getCommand("hgc").setExecutor(hgcore);
         Bukkit.getPluginManager().registerEvents(rg, this);
+        getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
         Refil.RegisterRecipeMethods();
     }
 

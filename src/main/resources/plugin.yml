@@ -3,7 +3,7 @@ version: '${version}'
 
 main: al3ncar.al3hg.al3hg
 api-version: '1.21.11'
-load: POSTWORLD
+load: STARTUP   
 author: Dedectr
 
 commands:

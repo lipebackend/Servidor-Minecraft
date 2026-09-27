@@ -1,14 +1,20 @@
 package al3ncar.al3hg.command;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import al3ncar.al3hg.al3hg;
+import al3ncar.al3hg.partida.Maneger;
+import al3ncar.al3hg.partida.StatsPartida;
+import al3ncar.al3hg.utils.EnviarServer;
 import al3ncar.al3hg.utils.PrefixoC;
 
 public class HgCore implements CommandExecutor {
+    private static StatsPartida a;
     private String ps = PrefixoC.PREFIXO;
 
     @Override
@@ -35,8 +41,32 @@ public class HgCore implements CommandExecutor {
                 }
             }
             case "fs": {
-                sender.sendMessage(ps + "Em desenvolvimento");
-                return false;
+                for (int a = 5; a > 0; a--) {
+                    sender.sendMessage(ps + "Iniciando a partida em " + a);
+                }
+                Maneger.getPartida().setStatusP(a.MEIO);
+                return true;
+            }
+            case "stop": {
+                for (int a = 5; a > 0; a--) {
+                    sender.sendMessage(ps + "Parando a partida em " + a);
+                }
+
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    EnviarServer.SendServer(p, "lobby");
+                }
+                Bukkit.getServer().shutdown();
+                return true;
+            }
+            case "rest": {
+                for (int a = 5; a > 0; a--) {
+                    sender.sendMessage(ps + "Reniciando a partida em " + a);
+                }
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    EnviarServer.SendServer(p, "lobby");
+                }
+                Bukkit.restart();
+                return true;
             }
             case "help": {
                 sender.sendMessage(ps + "/hgc reload > Reload do plugin");
