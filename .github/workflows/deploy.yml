@@ -1,9 +1,12 @@
-name: Build JARs
+name: Build and Release
 
 on:
   push:
     branches:
       - main
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -25,21 +28,28 @@ jobs:
 
       - name: Preparar JARs
         run: |
-          mkdir -p artifacts
+          mkdir -p release
 
           find target \
             -maxdepth 1 \
             -type f \
             -name "*.jar" \
             ! -name "original-*.jar" \
-            -exec cp {} artifacts/ \;
+            -exec cp {} release/ \;
 
-          echo "JARs encontrados:"
-          ls -lh artifacts/
+          echo "JARs que serão enviados:"
+          ls -lh release/
 
-      - name: Enviar todos os JARs
-        uses: actions/upload-artifact@v4
+      - name: Criar Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: jars
-          path: artifacts/*.jar
-          if-no-files-found: error
+          tag_name: build-${{ github.run_number }}
+          name: Build ${{ github.run_number }}
+          body: |
+            Build automático.
+
+            Commit:
+            ${{ github.sha }}
+          files: |
+            release/*.jar
+          prerelease: false
