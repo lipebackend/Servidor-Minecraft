@@ -1,6 +1,7 @@
 package al3ncar.al3hg.events;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -8,7 +9,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
 import al3ncar.al3hg.partida.Maneger;
-import al3ncar.al3hg.partida.PartidaRolando;
+import al3ncar.al3hg.partida.StatsPartida;
 import al3ncar.al3hg.utils.EnviarServer;
 
 public class RemoverDaPartidaDead implements Listener {
@@ -16,12 +17,14 @@ public class RemoverDaPartidaDead implements Listener {
     public void onDeath(PlayerDeathEvent event) {
         Player p = event.getEntity();
         Maneger.getPartida().removerJogadores(p);
-        atualizarContador();
+        p.setGameMode(GameMode.SPECTATOR);
+        atualizarContador(p);
     }
 
     @SuppressWarnings("deprecation")
-    public void atualizarContador() {
+    public void atualizarContador(Player p) {
         int vivos = Maneger.getPartida().getJogadoresVivos();
+        if(Maneger.getPartida().getJogadoresVivos() == 1) Maneger.getPartida().setStatusP(StatsPartida.FINAL);
         Bukkit.broadcastMessage("§eJogadores vivos: §f" + vivos);
     }
 

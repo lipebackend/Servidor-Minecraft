@@ -43,16 +43,18 @@ public class HgCore implements CommandExecutor {
                 }
             }
             case "fs": {
-                for (int a = 5; a > 0; a--) {
-                    sender.sendMessage(ps + "Iniciando a partida em " + a);
+                for (int a = 100; a > 0; a--) {
+                    double b = a/10;
+                    sender.sendMessage(ps + "Iniciando a partida em " + b);
                 }
                 Maneger.getPartida().setStatusP(a.MEIO);
                 b.Partidakk();
                 return true;
             }
             case "stop": {
-                for (int a = 5; a > 0; a--) {
-                    sender.sendMessage(ps + "Parando a partida em " + a);
+                for (int a = 100; a > 0; a--) {
+                    double b = a/10;
+                    sender.sendMessage(ps + "Parando a partida em " + b);
                 }
 
                 for (Player p : Bukkit.getOnlinePlayers()) {
@@ -62,8 +64,9 @@ public class HgCore implements CommandExecutor {
                 return true;
             }
             case "rest": {
-                for (int a = 5; a > 0; a--) {
-                    sender.sendMessage(ps + "Reniciando a partida em " + a);
+                for (int a = 100; a > 0; a--) {
+                    double b = a/10;
+                    sender.sendMessage(ps + "Reniciando a partida em " + b);
                 }
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     EnviarServer.SendServer(p, "lobby");

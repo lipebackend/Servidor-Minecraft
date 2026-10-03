@@ -1,75 +1,82 @@
-# SopaRegemClick
+# al3HG
 
-Plugin Minecraft PaperMC que adiciona um mecânico de sopa de cogumelo que cura o jogador ao clicar com o botão direito.
+Plugin de **Hunger Games** para Minecraft **1.21.11** (Paper/AdvancedSlimePaper).
 
 ## Visão Geral
 
-**SopaRegemClick** é um plugin Minecraft para PaperMC que cura jogadores quando eles clicam com o botão direito segurando **Sopa de Cogumelo** (Mushroom Stew), restaurando 3 pontos de saúde.
+**al3HG** é um plugin que adiciona um modo Hunger Games completo ao servidor: jogadores entram no lobby, são teleportados para uma arena (carregada via schematics/slimes com AdvancedSlimePaper), lutam até sobrar um vencedor, e o plugin cuida de contagem, border, regens, remoção de mortos e envio entre servidores via BungeeCord.
 
 ## Tecnologias
 
 | Tecnologia | Descrição |
 |------------|-----------|
-| **Java 21** | Versão do JDK usada no projeto |
-| **Maven** | Sistema de build e gerenciamento de dependências |
-| **PaperMC API** | API Bukkit otimizada para servidores Paper |
-| **Bukkit API** | Framework para desenvolvimento de plugins Minecraft |
+| **Java 21** | JDK do projeto |
+| **Maven** | Build e dependências |
+| **Paper API 1.21.11** | API principal do plugin |
+| **AdvancedSlimePaper 4.2.0** | Carregamento de mundos/schematics (`.slime`) |
+| **BungeeCord Plugin Messaging** | Envio de jogadores entre servidores |
 
 ## Funcionalidades
 
-- **Cura ao clicar**: Quando um jogador clicar (clique direito) com **Sopa de Cogumelo** na mão, sua saúde aumenta em 3 pontos (até o máximo)
-- **Comando `/sopa`**: Comando administrativo para recarregar configurações
-- **Prefixo personalizável**: Mensagens formatadas com códigos de cor §
+- **Modo Hunger Games completo** — lobby, contagem regressiva, grace period e fim de partida
+- **Gerenciamento de partida** — lista de jogadores vivos, status da partida (`INCIOS`, em andamento, etc.)
+- **Sopa de cura** — clique direito com sopa de cogumelo cura o jogador (`Regem`)
+- **Receitas customizadas** — itens especiais via `Refil.RegisterRecipeMethods()`
+- **Border do mundo** — área encolhendo durante a partida (`Borreiras`)
+- **Remoção de mortos** — elimina jogadores mortos da contagem (`RemoverDaPartidaDead`)
+- **BungeeCord** — envia jogadores para outro servidor ao final (`EnviarServer`)
 
-## Arquitetura do Código
+## Arquitetura
 
 ```
-src/main/java/
-├── al3ncar.sopaRegemClick/
-│   ├── SopaRegemClick.java    # Classe principal (JavaPlugin)
-│   ├── command/SopaReload.java # Executor de comandos
-│   ├── events/Regem.java      # Listener de eventos (PlayerInteractEvent)
-│   └── utils/PrefixoC.java    # Classe utilitária de formatação
+src/main/java/al3ncar/al3hg/
+├── al3hg.java                 # Classe principal (JavaPlugin)
+├── command/
+│   └── HgCore.java            # Comando /hgc (fs, stop, rest, help, reload)
+├── craft/
+│   └── Refil.java             # Registro de receitas customizadas
+├── events/
+│   ├── JoinManeger.java       # Gerenciamento de entrada no jogo
+│   ├── Regem.java             # Evento de cura com sopa
+│   └── RemoverDaPartidaDead.java
+├── partida/
+│   ├── Maneger.java           # Instância única da partida
+│   ├── Partida.java           # Estado e jogadores da partida
+│   ├── PartidaRolando.java    # Lógica da partida em andamento
+│   └── StatsPartida.java      # Enum de estados
+└── utils/
+    ├── Borreiras.java         # Border encolhendo
+    ├── EnviarServer.java      # Mensagens BungeeCord
+    └── PrefixoC.java          # Prefixo das mensagens
 ```
-
-### Classes Principais
-
-1. **SopaRegemClick.java** - Classe principal que estende `JavaPlugin` e implementa `Listener`. Registra o comando `/sopa` e o evento de jogador.
-
-2. **Regem.java** - Event listener que detecta quando um jogador interage com o item. Lógica:
-   - Verifica se o item é Mushroom Stew
-   - Verifica se é clique direito (AR ou BLOCK)
-   - Aumenta saúde em 3.0 (`player.getHealth() + 3.0`)
-   - Decrementa a quantidade da sopa em 1
-   - Devolve um novo item de sopa para o inventário
-   - Cancela o evento para evitar comportamento padrão
-
-3. **SopaReload.java** - CommandExecutor que trata o comando `/sopa`. Requer permissão `hgsopa.admin`. Suporta subcomando `reload`.
-
-4. **PrefixoC.java** - Classe utilitária que retorna um prefixo formatado `§1[...] ` para mensagens de chat.
 
 ## Comandos
 
 | Comando | Permissão | Descrição |
 |---------|-----------|-----------|
-| `/sopa` | `hgsopa.admin` | Recarrega as configurações do plugin |
+| `/hgc` | `hg.admin` | Comando principal (mostra ajuda) |
+| `/hgc fs` | `hg.admin` | Força o início rápido da partida |
+| `/hgc stop` | `hg.admin` | Para a partida e volta todos ao lobby |
+| `/hgc rest` | `hg.admin` | Reinicia a partida |
+| `/hgc reload` | `hg.admin` | Recarrega a configuração |
+| `/hgc help` | `hg.admin` | Ajuda dos comandos |
 
 ## Permissões
 
-- `hgsopa.admin` - Permite usar o comando `/sopa`
+- `hg.admin` — acesso total aos comandos do plugin
 
-## Configuração
-
-O plugin não requer arquivo de configuração externo. Todas as configurações são feitas por meio do comando `/sopa reload`.
-
-## Build e Deploy
+## Build
 
 ```bash
 mvn clean package
 ```
 
-O JAR será gerado em `target/soparegemclick-1.0.1.jar`.
+O JAR será gerado em `target/al3hg-1.2.1.jar`.
+
+## Tarefas
+
+Veja [task.md](task.md) para a lista completa de tarefas do projeto.
 
 ## Autor
 
-al3ncar
+Dedectr / al3ncar
