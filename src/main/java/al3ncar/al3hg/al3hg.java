@@ -4,14 +4,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
+
+import al3ncar.al3hg.mapa.RegeneretorWorld;
 import al3ncar.al3hg.command.HgCore;
 import al3ncar.al3hg.craft.Refil;
 import al3ncar.al3hg.events.JoinManeger;
 import al3ncar.al3hg.events.Regem;
 import al3ncar.al3hg.events.RemoverDaPartidaDead;
 import al3ncar.al3hg.partida.Maneger;
-import al3ncar.al3hg.partida.Partida;
-import al3ncar.al3hg.partida.PartidaRolando;
 
 public final class al3hg extends JavaPlugin implements Listener {
     // ---------- Privetes -------------------- //
@@ -25,6 +25,7 @@ public final class al3hg extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         ints = this;
+        RegeneretorWorld.limparMapa(ints,"world");
         getCommand("hgc").setExecutor(hgcore);
         Bukkit.getPluginManager().registerEvents(rg, ints);
         Bukkit.getPluginManager().registerEvents(jn, ints);

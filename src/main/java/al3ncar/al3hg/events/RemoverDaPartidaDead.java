@@ -8,8 +8,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
-import al3ncar.al3hg.al3hg;
-import al3ncar.al3hg.mapa.RegeneretorWorld;
+
 import al3ncar.al3hg.partida.Maneger;
 import al3ncar.al3hg.partida.StatsPartida;
 import al3ncar.al3hg.utils.EnviarServer;
@@ -28,7 +27,6 @@ public class RemoverDaPartidaDead implements Listener {
         int vivos = Maneger.getPartida().getJogadoresVivos();
         if(Maneger.getPartida().getJogadoresVivos() == 1){ 
             Maneger.getPartida().setStatusP(StatsPartida.FINAL); 
-            RegeneretorWorld.limparMapa(al3hg.getInts(),"world");
          }
         Bukkit.broadcastMessage("§eJogadores vivos: §f" + vivos);
     }
