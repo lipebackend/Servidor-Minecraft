@@ -1,16 +1,13 @@
 package al3ncar.al3hg;
 
+import al3ncar.al3hg.events.*;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
-
 import al3ncar.al3hg.mapa.RegeneretorWorld;
 import al3ncar.al3hg.command.HgCore;
 import al3ncar.al3hg.craft.Refil;
-import al3ncar.al3hg.events.JoinManeger;
-import al3ncar.al3hg.events.Regem;
-import al3ncar.al3hg.events.RemoverDaPartidaDead;
 import al3ncar.al3hg.partida.Maneger;
 
 public final class al3hg extends JavaPlugin implements Listener {
@@ -18,6 +15,8 @@ public final class al3hg extends JavaPlugin implements Listener {
     private static al3hg ints;
     private final HgCore hgcore = new HgCore();
     private final Regem rg = new Regem();
+    private final Killnotificador killnotificador = new Killnotificador();
+    private final CancelarDano cldano = new CancelarDano();
     private final JoinManeger jn = new JoinManeger();
     private final RemoverDaPartidaDead rdead = new RemoverDaPartidaDead();
     // ---------- Plugin -------------------- //
@@ -30,6 +29,8 @@ public final class al3hg extends JavaPlugin implements Listener {
         Bukkit.getPluginManager().registerEvents(rg, ints);
         Bukkit.getPluginManager().registerEvents(jn, ints);
         Bukkit.getPluginManager().registerEvents(rdead, ints);
+        Bukkit.getPluginManager().registerEvents(killnotificador, ints);
+        Bukkit.getPluginManager().registerEvents(cldano, ints);
         Maneger.init();
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
         Refil.RegisterRecipeMethods();

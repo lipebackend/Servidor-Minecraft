@@ -1,5 +1,8 @@
 package al3ncar.al3hg.command;
 
+import al3ncar.al3hg.enums.StatusPvp;
+import al3ncar.al3hg.utils.Barreiras;
+import al3ncar.al3hg.utils.MobsControillers;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -8,14 +11,14 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import al3ncar.al3hg.al3hg;
+import al3ncar.al3hg.enums.StatusPartida;
 import al3ncar.al3hg.partida.Maneger;
 import al3ncar.al3hg.partida.PartidaRolando;
-import al3ncar.al3hg.partida.StatsPartida;
 import al3ncar.al3hg.utils.EnviarServer;
 import al3ncar.al3hg.utils.PrefixoC;
 
 public class HgCore implements CommandExecutor {
-    private static StatsPartida a;
+    private final StatusPartida abs = null;
     private String ps = PrefixoC.PREFIXO;
     private final PartidaRolando b = new PartidaRolando();
 
@@ -42,35 +45,33 @@ public class HgCore implements CommandExecutor {
                     return true;
                 }
             }
-            case "fs": {
-                for (int a = 100; a > 0; a--) {
-                    double aa = a/10;
-                    sender.sendMessage(ps + "Iniciando a partida em " + aa);
+            case "start": {
+                try {
+                    for (Player p : Bukkit.getOnlinePlayers()) {
+                        p.teleportAsync(p.getWorld().getSpawnLocation());;
+                    }
+                } catch (Exception e){
+                    sender.sendMessage("Erro no comando" + e);
                 }
-                for(Player p : Bukkit.getOnlinePlayers()){
-                    p.teleportAsync(p.getWorld().getSpawnLocation());
-                }
-                Maneger.getPartida().setStatusP(a.MEIO);
+                Maneger.getPartida().setStatusP(abs.MEIO);
+                Maneger.getPartida().setPvpStatus(StatusPvp.ON);
+                Barreiras.Diminuir("hgmapa", 300);
                 b.Partidakk();
                 return true;
             }
             case "stop": {
-                for (int a = 100; a > 0; a--) {
-                    double aa = a/10;
-                    sender.sendMessage(ps + "Parando a partida em " + aa);
-                }
-                Maneger.getPartida().setStatusP(StatsPartida.FINAL);
-                for (Player p : Bukkit.getOnlinePlayers()) {
-                    EnviarServer.SendServer(p, "lobby");
+                Maneger.getPartida().setStatusP(abs.FINAL);
+                try {
+                    for (Player p : Bukkit.getOnlinePlayers()) {
+                        EnviarServer.SendServer(p, "lobby");
+                    }
+                } catch (Exception e){
+                    sender.sendMessage("Erro no comando" + e);
                 }
                 Bukkit.getServer().shutdown();
                 return true;
             }
             case "rest": {
-                for (int a = 100; a > 0; a--) {
-                    double aa = a/10;
-                    sender.sendMessage(ps + "Reniciando a partida em " + aa);
-                }
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     EnviarServer.SendServer(p, "lobby");
                 }
@@ -79,7 +80,9 @@ public class HgCore implements CommandExecutor {
             }
             case "help": {
                 sender.sendMessage(ps + "/hgc reload > Reload do plugin");
-                sender.sendMessage(ps + "/hgc fs > Fast Start partida");
+                sender.sendMessage(ps + "/hgc start > Start partida");
+                sender.sendMessage(ps + "/hgc stop > ele para a partida");
+                sender.sendMessage(ps + "/hgc rest > ele restarta a partida");
                 return true;
             }
             default: {
