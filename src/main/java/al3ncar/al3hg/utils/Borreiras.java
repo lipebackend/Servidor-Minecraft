@@ -14,6 +14,7 @@ public class Borreiras {
                 bord.setSize(400);
                 break;
             case StatsPartida.MEIO:
+                
                 bord.setSize(250);
                 break;
             case StatsPartida.FINAL:

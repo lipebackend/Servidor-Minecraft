@@ -47,7 +47,9 @@ public class HgCore implements CommandExecutor {
                     double aa = a/10;
                     sender.sendMessage(ps + "Iniciando a partida em " + aa);
                 }
-
+                for(Player p : Bukkit.getOnlinePlayers()){
+                    p.teleportAsync(p.getWorld().getSpawnLocation());
+                }
                 Maneger.getPartida().setStatusP(a.MEIO);
                 b.Partidakk();
                 return true;
@@ -57,7 +59,7 @@ public class HgCore implements CommandExecutor {
                     double aa = a/10;
                     sender.sendMessage(ps + "Parando a partida em " + aa);
                 }
-
+                Maneger.getPartida().setStatusP(StatsPartida.FINAL);
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     EnviarServer.SendServer(p, "lobby");
                 }

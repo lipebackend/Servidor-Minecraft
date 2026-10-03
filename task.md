@@ -12,12 +12,12 @@
 
 ## 🔴 Prioridade Alta
 
-- [ ] **Core estável** — revisar `al3hg.java`: garantir `onDisable` limpo (parar tasks, salvar dados)
-- [ ] **Ciclo de vida da partida** — validar transições de `StatsPartida` em `Partida`/`Maneger`/`PartidaRolando`
+- [x] **Core estável** — revisar `al3hg.java`: garantir `onDisable` limpo (parar tasks, salvar dados)
+- [x] **Ciclo de vida da partida** — validar transições de `StatsPartida` em `Partida`/`Maneger`/`PartidaRolando`
 - [x] **Remoção de dead** — revisar `RemoverDaPartidaDead` (espectador, drops, kill credit)
 - [ ] **Grace period** — não permitir dano nos primeiros X segundos
 - [ ] **Border** — revisar `Borreiras`: dano fora da área, encolhimento progressivo
-- [ ] **Build final** — garantir `mvn clean package` sem erros no Paper 1.21.11
+- [x] **Build final** — garantir `mvn clean package` sem erros no Paper 1.21.11
 
 ## 🟡 Prioridade Média
 
