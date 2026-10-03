@@ -18,7 +18,7 @@ public class JoinManeger implements Listener {
         Player p = e.getPlayer();
         p.setGameMode(GameMode.ADVENTURE);
         Maneger.getPartida().adicionarJogadores(p);
-        Borreiras.Diminuir("world");
+        Borreiras.Diminuir("hgmapa");
         p.sendMessage(ps + "Iniciando a partida em alguns segundos");
         
     }

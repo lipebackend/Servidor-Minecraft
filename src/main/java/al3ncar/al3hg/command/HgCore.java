@@ -74,7 +74,7 @@ public class HgCore implements CommandExecutor {
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     EnviarServer.SendServer(p, "lobby");
                 }
-                Bukkit.restart();
+                Bukkit.getServer().shutdown();
                 return true;
             }
             case "help": {

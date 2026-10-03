@@ -4,61 +4,40 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.stream.Stream;
 
-import org.bukkit.Bukkit;
-import org.bukkit.World;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 public class RegeneretorWorld {
 
+    /**
+     * Apaga a pasta do mundo direto no disco.
+     * Deve ser chamado no onEnable() ANTES do mundo ser carregado,
+     * ou com o mundo já descarregado.
+     */
     public static boolean limparMapa(Plugin plugin, String nomeMundo) {
-        World world = Bukkit.getWorld(nomeMundo);
-        if (world == null) return false;
+        // A pasta do mundo fica na raiz do servidor, ao lado de plugins/
+        Path pastaMundo = plugin.getServer().getWorldContainer().toPath().resolve(nomeMundo);
 
-        // Nunca tente regenerar os mundos padrão do servidor
-        if (world.equals(Bukkit.getWorlds().get(0))) {
-            plugin.getLogger().warning("Não é possível regenerar o mundo principal.");
+        if (!Files.exists(pastaMundo)) {
+            plugin.getLogger().info("Mundo " + nomeMundo + " não existe ainda, nada a apagar.");
             return false;
         }
 
-        World destino = Bukkit.getWorlds().stream()
-                .filter(w -> !w.equals(world))
-                .findFirst()
-                .orElse(null);
-        if (destino == null) return false;
-
-        for (Player p : world.getPlayers()) {
-            p.teleport(destino.getSpawnLocation());
-        }
-
-        Path pasta = world.getWorldFolder().toPath();
-
-        if (!Bukkit.unloadWorld(world, false)) {
-            plugin.getLogger().warning("Falha ao descarregar mundo: " + nomeMundo);
-            return false;
-        }
-
-        // Remove lock explicitamente
-        try {
-            Files.deleteIfExists(pasta.resolve("session.lock"));
+        try (Stream<Path> stream = Files.walk(pastaMundo)) {
+            stream.sorted(Comparator.reverseOrder())
+                  .forEach(p -> {
+                      try {
+                          Files.deleteIfExists(p);
+                      } catch (IOException e) {
+                          plugin.getLogger().warning("Falha ao deletar " + p + ": " + e.getMessage());
+                      }
+                  });
+            plugin.getLogger().info("Mundo " + nomeMundo + " apagado com sucesso.");
+            return true;
         } catch (IOException e) {
-            plugin.getLogger().warning("Não foi possível remover session.lock: " + e.getMessage());
+            plugin.getLogger().severe("Erro ao apagar mundo " + nomeMundo + ": " + e.getMessage());
+            return false;
         }
-
-        // Deleta de forma assíncrona
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            try (var s = Files.walk(pasta)) {
-                s.sorted(Comparator.reverseOrder()).forEach(p -> {
-                    try { Files.delete(p); }
-                    catch (IOException e) { e.printStackTrace(); }
-                });
-                plugin.getLogger().info("Mundo " + nomeMundo + " regenerado com sucesso.");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-
-        return true;
     }
 }

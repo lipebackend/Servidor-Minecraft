@@ -25,7 +25,7 @@ public final class al3hg extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         ints = this;
-        RegeneretorWorld.limparMapa(ints,"world");
+        RegeneretorWorld.limparMapa(this,"hgmapa");
         getCommand("hgc").setExecutor(hgcore);
         Bukkit.getPluginManager().registerEvents(rg, ints);
         Bukkit.getPluginManager().registerEvents(jn, ints);

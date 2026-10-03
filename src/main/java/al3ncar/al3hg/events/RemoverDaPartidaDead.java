@@ -27,6 +27,7 @@ public class RemoverDaPartidaDead implements Listener {
         int vivos = Maneger.getPartida().getJogadoresVivos();
         if(Maneger.getPartida().getJogadoresVivos() == 1){ 
             Maneger.getPartida().setStatusP(StatsPartida.FINAL); 
+            Bukkit.getServer().shutdown();
          }
         Bukkit.broadcastMessage("§eJogadores vivos: §f" + vivos);
     }
