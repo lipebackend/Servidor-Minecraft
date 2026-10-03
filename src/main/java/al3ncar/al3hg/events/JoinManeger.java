@@ -5,7 +5,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
- 
+
+import al3ncar.al3hg.utils.Borreiras;
 import al3ncar.al3hg.utils.PrefixoC;
 import al3ncar.al3hg.partida.Maneger;
 
@@ -17,6 +18,7 @@ public class JoinManeger implements Listener {
         Player p = e.getPlayer();
         p.setGameMode(GameMode.ADVENTURE);
         Maneger.getPartida().adicionarJogadores(p);
+        Borreiras.Diminuir("world");
         p.sendMessage(ps + "Iniciando a partida em alguns segundos");
         
     }

@@ -11,10 +11,10 @@ public class Borreiras {
         WorldBorder bord = Bukkit.getWorld(mapa).getWorldBorder();
         switch (Maneger.getPartida().getStatusP()) {
             case StatsPartida.INCIOS:
-                bord.setSize(500);
+                bord.setSize(400);
                 break;
             case StatsPartida.MEIO:
-                bord.setSize(300);
+                bord.setSize(250);
                 break;
             case StatsPartida.FINAL:
                 bord.setSize(10);

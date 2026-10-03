@@ -1,0 +1,45 @@
+name: Build JARs
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Compilar projeto
+        run: mvn clean package -DskipTests
+
+      - name: Preparar JARs
+        run: |
+          mkdir -p artifacts
+
+          find target \
+            -maxdepth 1 \
+            -type f \
+            -name "*.jar" \
+            ! -name "original-*.jar" \
+            -exec cp {} artifacts/ \;
+
+          echo "JARs encontrados:"
+          ls -lh artifacts/
+
+      - name: Enviar todos os JARs
+        uses: actions/upload-artifact@v4
+        with:
+          name: jars
+          path: artifacts/*.jar
+          if-no-files-found: error
