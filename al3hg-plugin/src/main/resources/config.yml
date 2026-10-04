@@ -1,0 +1,21 @@
+# al3HG - configuração
+game:
+  min-players: 2          # mínimo para /hgc start (o /hgc fs ignora)
+  countdown-seconds: 10   # contagem regressiva antes do início
+  grace-seconds: 120      # tempo sem PVP após o início
+
+border:
+  initial-size: 300       # tamanho da border ao iniciar (blocos)
+  final-size: 20          # tamanho final
+  shrink-seconds: 300     # duração do encolhimento (começa quando o PVP é liberado)
+
+ending:
+  delay-seconds: 10              # espera após definir o vencedor, antes de enviar ao lobby
+  lobby-transfer-wait-seconds: 5 # espera após o envio, antes de descartar o mundo da arena
+  lobby-server: lobby            # servidor BungeeCord de destino
+  shutdown-after-end: false      # desligar o servidor depois de descartar a arena
+  shutdown-on-rest: false        # /hgc rest desliga o servidor (só depois do envio ao lobby)
+
+arena:
+  template-world: hgmapa         # mapa-modelo (arquivo <slime-directory>/<nome>.slime)
+  slime-directory: slime_worlds  # relativo à raiz do servidor
