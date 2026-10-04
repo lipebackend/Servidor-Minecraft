@@ -273,4 +273,47 @@ class AsyncServiceEdgeCasesTest {
             io.shutdownNow();
         }
     }
+
+    @Test
+    void manyConcurrentCallersAllGetTheirOwnResult() throws Exception {
+        ExecutorService io = Executors.newFixedThreadPool(4);
+        try {
+            FakeMainThread main = new FakeMainThread();
+            var service = new AsyncService(io, main);
+            AtomicInteger sum = new AtomicInteger();
+            List<CompletableFuture<Void>> all = new ArrayList<>();
+            for (int i = 1; i <= 200; i++) {
+                int n = i;
+                all.add(service.supplyThenSync(() -> n, sum::addAndGet));
+            }
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+            int drained = 0;
+            while (drained < 200 && System.nanoTime() < deadline) {
+                drained += main.drain();
+                Thread.sleep(1);
+            }
+            CompletableFuture.allOf(all.toArray(new CompletableFuture<?>[0])).get(5, TimeUnit.SECONDS);
+            assertEquals(200 * 201 / 2, sum.get());
+        } finally {
+            io.shutdownNow();
+        }
+    }
+
+    // ---------- expensiveCalculation ----------
+
+    @Test
+    void expensiveCalculationEdgeCases() {
+        assertEquals(0, AsyncService.expensiveCalculation(""));
+        assertEquals(0, AsyncService.expensiveCalculation("   \t\n"));
+        assertEquals(3, AsyncService.expensiveCalculation("\u2003abc\u2003"));   // strip() remove espacos Unicode
+        assertEquals(5, AsyncService.expensiveCalculation(" a b c "));   // espacos internos contam
+        assertEquals(1000, AsyncService.expensiveCalculation("x".repeat(1000)));
+        assertThrows(NullPointerException.class, () -> AsyncService.expensiveCalculation(null));
+    }
+
+    @Test
+    void expensiveCalculationCountsUtf16UnitsNotCodePoints() {
+        // Caracterizacao: emoji = 2 chars (par substituto); relevante para Messages.eliminated(int)
+        assertEquals(2, AsyncService.expensiveCalculation("😀"));
+    }
 }
