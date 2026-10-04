@@ -9,8 +9,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Disparado quando um jogador sai dos vivos (morte ou saída do servidor), já com ele removido.
- * Não cancelável.
+ * Disparado quando um jogador deixa o conjunto de vivos (morte ou saída do servidor).
+ * Já disparado com o jogador removido dos vivos. Não cancelável.
  */
 public class HgPlayerEliminatedEvent extends HgEvent {
 
@@ -45,7 +45,7 @@ public class HgPlayerEliminatedEvent extends HgEvent {
         return reason;
     }
 
-    /** Quantos continuam vivos depois desta eliminação. */
+    /** Quantos jogadores continuam vivos depois desta eliminação. */
     public int getRemaining() {
         return remaining;
     }

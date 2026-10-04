@@ -8,8 +8,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Disparado ao definir o vencedor (entrada em ENDING), ANTES de os jogadores serem enviados ao lobby.
- * Não cancelável.
+ * Disparado quando o vencedor é definido (entrada em ENDING), ANTES de os jogadores
+ * serem enviados ao lobby. Não cancelável.
  */
 public class HgGameEndEvent extends HgEvent {
 

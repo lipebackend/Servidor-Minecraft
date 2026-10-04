@@ -1,19 +1,25 @@
 package al3ncar.al3hg.api;
 
-/** Estados da partida: WAITING -> COUNTDOWN -> GRACE -> RUNNING -> ENDING -> WAITING. */
+/**
+ * Estados do ciclo de vida de uma partida do al3HG.
+ *
+ * <pre>
+ * WAITING -> COUNTDOWN -> GRACE -> RUNNING -> ENDING -> WAITING
+ * </pre>
+ */
 public enum GameState {
-    /** Sem partida em curso. */
+    /** Aguardando jogadores / início. Nenhuma partida em curso. */
     WAITING,
     /** Contagem regressiva antes do início. */
     COUNTDOWN,
-    /** Partida iniciada, PVP ainda desligado. */
+    /** Partida iniciada, PVP ainda desligado (período de graça). */
     GRACE,
     /** Partida em andamento com PVP ligado. */
     RUNNING,
-    /** Vencedor definido; aguardando o envio ao lobby. */
+    /** Vencedor definido; aguardando o envio dos jogadores ao lobby. */
     ENDING;
 
-    /** {@code true} em GRACE e RUNNING. */
+    /** @return {@code true} se há uma partida em curso (GRACE ou RUNNING). */
     public boolean isInProgress() {
         return this == GRACE || this == RUNNING;
     }
