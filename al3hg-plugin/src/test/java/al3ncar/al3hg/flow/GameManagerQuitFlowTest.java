@@ -4,6 +4,8 @@ import al3ncar.al3hg.api.GameState;
 import al3ncar.al3hg.api.event.HgGameEndEvent;
 import al3ncar.al3hg.api.event.HgPlayerEliminatedEvent;
 import al3ncar.al3hg.testutil.GameHarness;
+import al3ncar.al3hg.testutil.FakeServer;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,6 +18,11 @@ import static org.junit.jupiter.api.Assertions.*;
 class GameManagerQuitFlowTest {
 
     private GameHarness h;
+
+    @AfterAll
+    static void tearDown() {
+        FakeServer.uninstall();
+    }
 
     @BeforeEach
     void setUp() {
@@ -71,11 +78,14 @@ class GameManagerQuitFlowTest {
     }
 
     @Test
-    @DisplayName("todos saem: ENDING sem vencedor")
-    void everybodyQuitsEndsWithoutWinner() {
-        h.players.forEach(h.game::handleQuit);
-        assertEquals(GameState.ENDING, h.game.state());
-        assertTrue(h.game.winner().isEmpty());
-        assertEquals(List.of(2, 1, 0), eliminations().stream().map(HgPlayerEliminatedEvent::getRemaining).toList());
+    @DisplayName("único jogador sai: ENDING sem vencedor e remaining=0")
+    void onlyPlayerQuitsEndsWithoutWinner() {
+        GameHarness solo = new GameHarness(GameHarness.settings(false), "solo");
+        solo.game.start(true);
+        solo.game.handleQuit(solo.players.getFirst());
+        assertEquals(GameState.ENDING, solo.game.state());
+        assertTrue(solo.game.winner().isEmpty());
+        assertEquals(0, solo.server.events.stream().filter(HgPlayerEliminatedEvent.class::isInstance)
+                .map(HgPlayerEliminatedEvent.class::cast).findFirst().orElseThrow().getRemaining());
     }
 }
