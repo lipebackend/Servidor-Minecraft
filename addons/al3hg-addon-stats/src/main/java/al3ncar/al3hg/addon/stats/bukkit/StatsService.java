@@ -43,7 +43,7 @@ public final class StatsService {
     }
 
     public void recordWin(UUID player) {
-        update(player, rules::recordWin, "registrar vitoria");
+        update(player, rules::recordWin, "registrar vitória");
     }
 
     public void recordGamePlayed(Collection<UUID> players) {
