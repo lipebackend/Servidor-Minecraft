@@ -9,7 +9,7 @@ Fontes oficiais linkadas em cada seção. Itens não confirmados estão marcados
 - Defina sempre `api-version` no descritor, senão o plugin carrega como legado com aviso no console.
 - A API do servidor só pode ser usada na thread principal. I/O (SQLite, arquivos) deve ser assíncrono e voltar à thread principal pelo scheduler.
 - Documentação: https://docs.papermc.io/paper/dev/getting-started/paper-plugins/
-- Observação: a documentação atual do Paper já descreve a versão `26.x` (Java 25). Este projeto usa Paper 1.21.11 e Java 21 de propósito, para casar com o ASP.
+- Observação: a documentação atual do Paper já descreve a versão `26.x` (Java 25). Este projeto usa Paper 1.21.11 para casar com o ASP; veja a seção 2 sobre a versão de Java.
 
 ## 2. AdvancedSlimePaper (ASP) 4.2.0-SNAPSHOT
 
@@ -20,7 +20,9 @@ O ASP é um fork do Paper. A API já vem no servidor, então o plugin Slime Worl
   - repositório `https://repo.infernalsuite.com/repository/maven-snapshots/`
   - `com.infernalsuite.asp:api:4.2.0-SNAPSHOT`
 - Pacote de imports: `com.infernalsuite.asp.api` (o antigo `aswm` não vale mais).
-- Não confirmado: a resolução real do artefato no Maven. A primeira compilação confirma. Por ser SNAPSHOT, congele o JAR do servidor usado nos testes.
+- Por ser SNAPSHOT, congele o JAR do servidor usado nos testes.
+- Confirmado pelo build da fase 1: a API do ASP 4.2.0-SNAPSHOT é bytecode class 69 (Java 25). O projeto precisa de JDK 25 para compilar e gera bytecode Java 21.
+- Risco em aberto, não verificado: se o JAR do servidor ASP 1.21.11 também exigir Java 25 em execução, o servidor de produção e o de testes precisam rodar JDK 25. Conferir a versão de Java exigida pelo build do servidor em https://infernalsuite.com/download/asp antes do deploy.
 
 ### Ciclo de vida de um mundo de partida
 
