@@ -79,6 +79,7 @@ public final class FakeServer {
             case "getName" -> name;
             case "isOnline" -> true;
             case "getWorld" -> world;
+            case "getInventory" -> stub(org.bukkit.inventory.PlayerInventory.class, (im, ia) -> PASS);
             case "setGameMode" -> modes.put(name, (GameMode) a[0]);
             case "sendPluginMessage" -> log.add("lobby:" + name);
             default -> PASS;

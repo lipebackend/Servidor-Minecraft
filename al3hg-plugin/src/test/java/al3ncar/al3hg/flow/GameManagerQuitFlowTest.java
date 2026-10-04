@@ -78,14 +78,13 @@ class GameManagerQuitFlowTest {
     }
 
     @Test
-    @DisplayName("único jogador sai: ENDING sem vencedor e remaining=0")
-    void onlyPlayerQuitsEndsWithoutWinner() {
+    @DisplayName("início rápido com 1 jogador: beginGrace confere isOver() e termina na hora com ele de vencedor")
+    void soloFastStartEndsImmediately() {
         GameHarness solo = new GameHarness(GameHarness.settings(false), "solo");
         solo.game.start(true);
+        assertEquals(GameState.ENDING, solo.game.state());
+        assertEquals(solo.players.getFirst().getUniqueId(), solo.game.winner().orElseThrow());
         solo.game.handleQuit(solo.players.getFirst());
         assertEquals(GameState.ENDING, solo.game.state());
-        assertTrue(solo.game.winner().isEmpty());
-        assertEquals(0, solo.server.events.stream().filter(HgPlayerEliminatedEvent.class::isInstance)
-                .map(HgPlayerEliminatedEvent.class::cast).findFirst().orElseThrow().getRemaining());
     }
 }
