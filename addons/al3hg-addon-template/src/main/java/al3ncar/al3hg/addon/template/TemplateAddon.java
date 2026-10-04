@@ -3,6 +3,7 @@ package al3ncar.al3hg.addon.template;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.Executor;
@@ -35,10 +36,10 @@ public final class TemplateAddon extends JavaPlugin {
             ioExecutor.shutdown();
             try {
                 if (!ioExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
-                    ioExecutor.shutdownNow();
+                    AsyncService.rejectPending(ioExecutor.shutdownNow());
                 }
             } catch (InterruptedException e) {
-                ioExecutor.shutdownNow();
+                AsyncService.rejectPending(ioExecutor.shutdownNow());
                 Thread.currentThread().interrupt();
             }
         }
@@ -49,7 +50,8 @@ public final class TemplateAddon extends JavaPlugin {
     public Executor mainThreadExecutor() {
         return task -> {
             if (!isEnabled()) {
-                return; // plugin desabilitando: o scheduler recusaria a tarefa
+                // plugin desabilitando: o scheduler recusaria a tarefa; falha o future em vez de deixa-lo pendente
+                throw new RejectedExecutionException("Addon desabilitado");
             }
             getServer().getScheduler().runTask(this, task);
         };
