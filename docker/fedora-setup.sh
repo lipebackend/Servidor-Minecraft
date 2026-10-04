@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # al3HG - automação para Fedora: prepara tudo e sobe o servidor local de testes com Docker.
+# Baixa o AdvancedSlimePaper, gera/importa a arena de teste (.slime) e cria o eula.txt (veja o aviso do EULA abaixo).
 # NÃO instala o Docker (ele já deve estar instalado). Veja docker/README.md, seção "Fedora (automático)".
 # Uso: bash fedora-setup.sh [--java 21|25] [--aceito-eula] [--sem-subir] [--ajuda]
 # Variável opcional: DESTINO (pasta do clone; padrão ~/Servidor-Minecraft).
@@ -8,7 +9,6 @@ set -euo pipefail
 REPO_URL="https://github.com/lipebackend/Servidor-Minecraft"
 DESTINO="${DESTINO:-$HOME/Servidor-Minecraft}"
 JAVA_VERSION="25"
-ACEITO_EULA="n"
 SUBIR="s"
 # Prefixo do docker: vazio (usuário comum) ou "sudo" (se faltar permissão no socket do Docker).
 PREFIXO_DOCKER=()
@@ -26,9 +26,12 @@ Prepara e sobe o servidor local do al3HG no Fedora (não instala o Docker).
 
 Opções:
   --java 21|25    versão do Java da imagem Docker (padrão: 25)
-  --aceito-eula   cria o eula.txt (eula=true). Significa que VOCÊ aceita https://aka.ms/MinecraftEULA
+  --aceito-eula   mantido por compatibilidade; não muda nada (o eula.txt é criado sempre, veja o aviso abaixo)
   --sem-subir     prepara tudo, mas não executa "docker compose up"
   --ajuda         mostra esta mensagem
+
+AVISO: rodar este script cria docker/data/eula.txt com eula=true, ou seja, significa que VOCÊ aceita o
+EULA da Mojang (https://aka.ms/MinecraftEULA). Se não aceita, não rode (ou apague o eula.txt depois).
 
 Variável de ambiente: DESTINO = pasta do clone (padrão: ~/Servidor-Minecraft).
 Pode rodar de novo quantas vezes quiser: o script só faz o que ainda falta.
@@ -40,7 +43,7 @@ ler_argumentos() {
     case "$1" in
       --java) [ "$#" -ge 2 ] || erro "--java precisa de um valor (21 ou 25)."; JAVA_VERSION="$2"; shift 2 ;;
       --java=*) JAVA_VERSION="${1#--java=}"; shift ;;
-      --aceito-eula) ACEITO_EULA="s"; shift ;;
+      --aceito-eula) shift ;; # sem efeito: o eula.txt é criado sempre (veja o aviso)
       --sem-subir) SUBIR="n"; shift ;;
       --ajuda|-h|--help) ajuda; exit 0 ;;
       *) erro "opção desconhecida: $1 (use --ajuda)." ;;
@@ -87,7 +90,7 @@ precisa_sudo() { command -v sudo >/dev/null 2>&1 || erro "'sudo' não encontrado
 
 instalar_pacotes() {
   local faltam=() cmd pkg
-  for par in git:git curl:curl mvn:maven; do
+  for par in git:git curl:curl mvn:maven python3:python3; do
     cmd="${par%%:*}"; pkg="${par##*:}"
     command -v "$cmd" >/dev/null 2>&1 && ok "$cmd já instalado." || faltam+=("$pkg")
   done
@@ -158,6 +161,50 @@ clonar_ou_atualizar() {
   DATA="$DESTINO/docker/data"
 }
 
+# --- Dados do servidor: server.jar, arena (.slime) e eula.txt -----------------------------------
+API_ASP="https://api.infernalsuite.com/v1/projects/asp"
+
+# Imprime "<id-do-build> <id-do-arquivo> <sha256>" do build mais recente do branch main para o 1.21.11.
+achar_arquivo_asp() {
+  curl -fsSL "$API_ASP/mcversion/1.21.11" | python3 -c '
+import json, sys
+builds = sorted((b for b in json.load(sys.stdin) if b["branch"] == "main"), key=lambda b: b["date"])
+arq = next(f for f in builds[-1]["files"] if f["fileName"] == sys.argv[1])
+print(builds[-1]["id"], arq["id"], arq["sha256Hash"])' "$1"
+}
+
+# baixar_asp <nome-do-arquivo-na-api> <destino>: baixa e confere o SHA-256 informado pela API.
+baixar_asp() {
+  local build arquivo sha tmp
+  read -r build arquivo sha < <(achar_arquivo_asp "$1") || erro "não consegui consultar a API do AdvancedSlimePaper."
+  tmp="$2.parte"
+  curl -fSL "$API_ASP/$build/download/$arquivo" -o "$tmp" || erro "falha ao baixar $1 de $API_ASP."
+  [ "$(sha256sum "$tmp" | cut -d' ' -f1)" = "$sha" ] || { rm -f "$tmp"; erro "SHA-256 de $1 não confere."; }
+  mv "$tmp" "$2"
+}
+
+preparar_dados() {
+  mkdir -p "$DATA/slime_worlds" "$DATA/.ferramentas"
+  if [ -f "$DATA/server.jar" ]; then ok "server.jar já existe."; else
+    info "Baixando o AdvancedSlimePaper 1.21.11 (branch main) para $DATA/server.jar ..."
+    baixar_asp asp-server.jar "$DATA/server.jar"
+  fi
+  if [ -f "$DATA/slime_worlds/hgmapa.slime" ]; then ok "hgmapa.slime já existe (não foi alterado)."; else
+    local mundo="$DATA/.ferramentas/mundo"
+    info "Gerando a arena de teste e convertendo para .slime (importer do ASP)..."
+    baixar_asp importer-4.2.0-SNAPSHOT.jar "$DATA/.ferramentas/importer.jar"
+    rm -rf "$mundo" && python3 "$DESTINO/docker/gerar-arena.py" "$mundo/hgmapa" >/dev/null
+    "$JAVA_HOME/bin/java" -jar "$DATA/.ferramentas/importer.jar" "$mundo/hgmapa" --accept --print-error
+    [ -s "$mundo/hgmapa.slime" ] || erro "o importer não gerou o hgmapa.slime."
+    mv "$mundo/hgmapa.slime" "$DATA/slime_worlds/hgmapa.slime" && rm -rf "$mundo"
+    ok "arena de teste criada. Troque por um mapa seu quando quiser (mesmo caminho: slime_worlds/hgmapa.slime)."
+  fi
+  if [ -f "$DATA/eula.txt" ]; then ok "eula.txt já existe."; else
+    printf 'eula=true\n' > "$DATA/eula.txt"
+    aviso "eula.txt criado com eula=true: você aceitou https://aka.ms/MinecraftEULA ao rodar este script."
+  fi
+}
+
 compilar() {
   info "Rodando docker/preparar.sh (compila e copia os JARs)..."
   bash "$DESTINO/docker/preparar.sh"
@@ -185,11 +232,13 @@ MSG
 
 main() {
   ler_argumentos "$@"
+  aviso "ao rodar este script o eula.txt é criado com eula=true: você aceita https://aka.ms/MinecraftEULA (Ctrl+C para cancelar)."
   checar_sistema
   checar_docker
   instalar_pacotes
   garantir_jdk25
   clonar_ou_atualizar
+  preparar_dados
   compilar
   subir_servidor
 }
