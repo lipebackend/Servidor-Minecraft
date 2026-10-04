@@ -286,4 +286,24 @@ class SqliteStatsRepositoryFailureModesTest {
             assertEquals("al3hg-stats-sqlite", name[0]);
         }
     }
+
+    @Test
+    void persistedDataIsReadableByIndependentJdbcConnectionAfterClose() throws Exception {
+        Path db = tempDir.resolve("jdbc.db");
+        UUID id = uuid(42);
+        try (var repo = new SqliteStatsRepository(db)) {
+            await(repo.save(new PlayerStats(id, 7, 6, 5, 4)));
+        }
+        try (Connection c = DriverManager.getConnection("jdbc:sqlite:" + db.toAbsolutePath());
+             Statement st = c.createStatement();
+             var rs = st.executeQuery("SELECT uuid, kills, wins, deaths, games_played FROM player_stats")) {
+            assertTrue(rs.next());
+            assertEquals(id.toString(), rs.getString(1));
+            assertEquals(7, rs.getInt(2));
+            assertEquals(6, rs.getInt(3));
+            assertEquals(5, rs.getInt(4));
+            assertEquals(4, rs.getInt(5));
+            assertFalse(rs.next());
+        }
+    }
 }
