@@ -107,7 +107,7 @@ public final class SqliteStatsRepository implements StatsRepository {
         Objects.requireNonNull(change, "change");
         return run(() -> {
             PlayerStats current = select(uuid).orElseGet(() -> PlayerStats.empty(uuid));
-            PlayerStats updated = change.apply(current);
+            PlayerStats updated = StatsUpdates.requireSameUuid(uuid, change.apply(current));
             upsert(updated);
             return updated;
         });
