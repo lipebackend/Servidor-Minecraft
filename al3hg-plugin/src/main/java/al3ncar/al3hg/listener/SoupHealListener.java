@@ -1,5 +1,6 @@
 package al3ncar.al3hg.listener;
 
+import al3ncar.al3hg.api.HgGame;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
@@ -10,8 +11,18 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
 public class SoupHealListener implements Listener {
+
+    private final HgGame game;
+
+    public SoupHealListener(HgGame game) {
+        this.game = game;
+    }
+
     @EventHandler
     public void UsarSopa(PlayerInteractEvent e) {
+        if (!game.state().isInProgress()) {
+            return;
+        }
         Player player = e.getPlayer();
         ItemStack item = e.getItem();
         if (item == null || item.getType() != Material.MUSHROOM_STEW)

@@ -46,7 +46,7 @@ public final class Al3HgPlugin extends JavaPlugin {
         game = new GameManager(this, arena, new LobbyTransfer(this, this::settings), this::settings);
         getServer().getServicesManager().register(HgGame.class, game, this, ServicePriority.Normal);
 
-        getServer().getPluginManager().registerEvents(new SoupHealListener(), this);
+        getServer().getPluginManager().registerEvents(new SoupHealListener(game), this);
         getServer().getPluginManager().registerEvents(new PlayerConnectionListener(game), this);
         getServer().getPluginManager().registerEvents(new PlayerDeathListener(game), this);
         getServer().getPluginManager().registerEvents(new PvpDamageListener(game), this);
