@@ -33,6 +33,8 @@ public final class AsyncService {
      * {@code onMainThread}, ja de volta a thread principal.
      */
     public <T> CompletableFuture<Void> supplyThenSync(Supplier<T> work, Consumer<T> onMainThread) {
+        Objects.requireNonNull(work, "work");
+        Objects.requireNonNull(onMainThread, "onMainThread");
         return CompletableFuture
                 .supplyAsync(work, ioExecutor)
                 .thenAcceptAsync(onMainThread, mainThreadExecutor);
