@@ -64,6 +64,10 @@ public final class SqliteStatsRepository implements StatsRepository {
     private final ExecutorService executor;
     /** Acessada apenas pela thread do {@link #executor}. */
     private Connection connection;
+    /** Acessada apenas pela thread do executor: impede reabrir a conexao apos o close(). */
+    private boolean closed;
+    /** Thread do executor, para detectar close() chamado de dentro de um callback. */
+    private volatile Thread executorThread;
 
     public SqliteStatsRepository(Path databaseFile) {
         Objects.requireNonNull(databaseFile, "databaseFile");
@@ -71,6 +75,7 @@ public final class SqliteStatsRepository implements StatsRepository {
         this.executor = Executors.newSingleThreadExecutor(runnable -> {
             Thread thread = new Thread(runnable, "al3hg-stats-sqlite");
             thread.setDaemon(true);
+            executorThread = thread;
             return thread;
         });
     }
@@ -116,6 +121,12 @@ public final class SqliteStatsRepository implements StatsRepository {
     /** Conclui as tarefas pendentes, fecha a conexao e encerra a thread. */
     @Override
     public void close() {
+        if (Thread.currentThread() == executorThread) {
+            // Chamado de um callback na propria thread do executor: enfileirar e esperar travaria.
+            closeConnection();
+            executor.shutdown();
+            return;
+        }
         try {
             executor.submit(this::closeConnection).get(5, TimeUnit.SECONDS);
         } catch (Exception ignored) {
@@ -147,6 +158,9 @@ public final class SqliteStatsRepository implements StatsRepository {
     }
 
     private Connection connection() throws SQLException {
+        if (closed) {
+            throw new SQLException("Repositorio fechado");
+        }
         if (connection == null) {
             Connection opened = DriverManager.getConnection(jdbcUrl);
             try (Statement st = opened.createStatement()) {
@@ -161,6 +175,7 @@ public final class SqliteStatsRepository implements StatsRepository {
     }
 
     private void closeConnection() {
+        closed = true;
         if (connection != null) {
             try {
                 connection.close();
