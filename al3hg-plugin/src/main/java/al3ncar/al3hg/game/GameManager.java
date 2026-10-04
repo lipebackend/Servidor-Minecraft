@@ -17,6 +17,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.plugin.Plugin;
@@ -371,11 +373,23 @@ public final class GameManager implements HgGame {
     // ------------------------------------------------------------------ utilidades
 
     private void enterArena(Player p, GameMode mode) {
+        if (mode != GameMode.SPECTATOR) {
+            resetPlayer(p);
+        }
         Location spawn = arenaSpawn();
         if (spawn != null) {
             p.teleportAsync(spawn);
         }
         p.setGameMode(mode);
+    }
+
+    /** Limpa vida, fome e inventário de quem vai jogar (não deixa itens/estado de antes da partida). */
+    private static void resetPlayer(Player p) {
+        AttributeInstance maxHealth = p.getAttribute(Attribute.MAX_HEALTH);
+        p.setHealth(maxHealth == null ? 20.0 : maxHealth.getValue());
+        p.setFoodLevel(20);
+        p.setSaturation(20.0f);
+        p.getInventory().clear();
     }
 
     /** Resolvido sob demanda a partir do nome do mundo (nunca armazenado). */
