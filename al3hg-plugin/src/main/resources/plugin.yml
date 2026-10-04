@@ -1,5 +1,5 @@
 name: Al3HG
-version: '${version}'
+version: '${project.version}'
 main: al3ncar.al3hg.Al3HgPlugin
 api-version: '1.21.11'
 load: STARTUP
