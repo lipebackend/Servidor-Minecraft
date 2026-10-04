@@ -53,8 +53,8 @@ public final class Messages {
     }
 
     public static Component rankingLine(int position, String name, PlayerStats stats, long score) {
-        return line(position + ". " + name + " - " + stats.wins() + " vitórias, "
-                + stats.kills() + " abates (" + score + " pts)", NamedTextColor.WHITE);
+        return line(position + ". " + name + " - vitórias: " + stats.wins()
+                + ", abates: " + stats.kills() + " (" + score + " pts)", NamedTextColor.WHITE);
     }
 
     private static Component error(String text) {
