@@ -179,4 +179,98 @@ class AsyncServiceEdgeCasesTest {
     }
 
     // ---------- threads e ordem ----------
+
+    @Test
+    void workRunsOnIoThreadAndCallbackOnlyOnTheThreadThatDrainsMain() throws Exception {
+        ExecutorService io = Executors.newSingleThreadExecutor(r -> new Thread(r, "io-test"));
+        try {
+            FakeMainThread main = new FakeMainThread();
+            AtomicReference<String> workThread = new AtomicReference<>();
+            AtomicReference<String> callbackThread = new AtomicReference<>();
+
+            CompletableFuture<Void> f = new AsyncService(io, main).supplyThenSync(() -> {
+                workThread.set(Thread.currentThread().getName());
+                return 1;
+            }, v -> callbackThread.set(Thread.currentThread().getName()));
+
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+            while (main.queue.isEmpty() && System.nanoTime() < deadline) {
+                Thread.sleep(1);
+            }
+            assertNull(callbackThread.get(), "callback nao pode rodar antes do tick da thread principal");
+            main.drain();
+            f.get(5, TimeUnit.SECONDS);
+
+            assertEquals("io-test", workThread.get());
+            assertEquals(Thread.currentThread().getName(), callbackThread.get());
+        } finally {
+            io.shutdownNow();
+        }
+    }
+
+    @Test
+    void singleThreadIoPreservesSubmissionOrderOfCallbacks() throws Exception {
+        ExecutorService io = Executors.newSingleThreadExecutor();
+        try {
+            FakeMainThread main = new FakeMainThread();
+            var service = new AsyncService(io, main);
+            List<Integer> delivered = new ArrayList<>();
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
+            for (int i = 0; i < 50; i++) {
+                int n = i;
+                futures.add(service.supplyThenSync(() -> n, delivered::add));
+            }
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+            while (main.queue.size() < 50 && System.nanoTime() < deadline) {
+                Thread.sleep(1);
+            }
+            assertEquals(50, main.drain());
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[0])).get(5, TimeUnit.SECONDS);
+
+            List<Integer> expected = new ArrayList<>();
+            for (int i = 0; i < 50; i++) {
+                expected.add(i);
+            }
+            assertEquals(expected, delivered);
+        } finally {
+            io.shutdownNow();
+        }
+    }
+
+    @Test
+    void slowFirstTaskOnMultiThreadPoolMayBeDeliveredAfterFasterOne() throws Exception {
+        // Caracterizacao: com pool > 1 NAO ha garantia de ordem; quem precisa de ordem deve usar executor de 1 thread.
+        ExecutorService io = Executors.newFixedThreadPool(2);
+        try {
+            FakeMainThread main = new FakeMainThread();
+            var service = new AsyncService(io, main);
+            java.util.concurrent.CountDownLatch gate = new java.util.concurrent.CountDownLatch(1);
+            List<String> delivered = java.util.Collections.synchronizedList(new ArrayList<>());
+
+            CompletableFuture<Void> slow = service.supplyThenSync(() -> {
+                try {
+                    gate.await(5, TimeUnit.SECONDS);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                return "lenta";
+            }, delivered::add);
+            CompletableFuture<Void> fast = service.supplyThenSync(() -> "rapida", delivered::add);
+
+            long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+            while (main.queue.isEmpty() && System.nanoTime() < deadline) {
+                Thread.sleep(1);
+            }
+            gate.countDown();
+            while (main.queue.size() < 2 && System.nanoTime() < deadline) {
+                Thread.sleep(1);
+            }
+            main.drain();
+            CompletableFuture.allOf(slow, fast).get(5, TimeUnit.SECONDS);
+            assertEquals(2, delivered.size());
+            assertEquals("rapida", delivered.get(0));
+        } finally {
+            io.shutdownNow();
+        }
+    }
 }
