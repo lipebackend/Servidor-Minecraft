@@ -97,4 +97,86 @@ class AsyncServiceEdgeCasesTest {
         good.get(5, TimeUnit.SECONDS);
         assertEquals(7, got.get());
     }
+
+    @Test
+    void failureIsNotSwallowedWhenJoined() {
+        FakeMainThread main = new FakeMainThread();
+        var f = new AsyncService(Runnable::run, main).supplyThenSync(() -> {
+            throw new IllegalArgumentException("iae");
+        }, v -> { });
+        main.drain();
+        var ex = assertThrows(CompletionException.class, f::join);
+        assertInstanceOf(IllegalArgumentException.class, root(ex));
+    }
+
+    @Test
+    void nullResultFromWorkIsDeliveredAsNull() throws Exception {
+        FakeMainThread main = new FakeMainThread();
+        AtomicReference<String> got = new AtomicReference<>("naoSetado");
+        var f = new AsyncService(Runnable::run, main).<String>supplyThenSync(() -> null, got::set);
+        main.drain();
+        f.get(5, TimeUnit.SECONDS);
+        assertNull(got.get());
+    }
+
+    @Test
+    void nullWorkIsRejectedSynchronously() {
+        var service = new AsyncService(Runnable::run, new FakeMainThread());
+        assertThrows(NullPointerException.class, () -> service.supplyThenSync(null, v -> { }));
+    }
+
+    /**
+     * Regressao (corrigido na main): o callback nulo so e rejeitado por thenAcceptAsync, DEPOIS de supplyAsync ja ter
+     * disparado o trabalho. O NPE sobe sincrono, mas o {@code work} (I/O!) ja foi executado e o future
+     * se perde. Esperado: validar com Objects.requireNonNull antes de iniciar qualquer trabalho.
+     */
+    @Test
+    void nullCallbackMustBeRejectedBeforeAnyWorkRuns() {
+        AtomicBoolean workRan = new AtomicBoolean();
+        var service = new AsyncService(Runnable::run, new FakeMainThread());
+        assertThrows(NullPointerException.class, () -> service.supplyThenSync(() -> {
+            workRan.set(true);
+            return 1;
+        }, null));
+        assertFalse(workRan.get(), "work executou mesmo com callback nulo (efeito colateral perdido)");
+    }
+
+    // ---------- shutdown / rejeicao ----------
+
+    @Test
+    void shutdownIoExecutorMakesSubmissionFailLoudlyAndSkipsCallback() {
+        ExecutorService io = Executors.newSingleThreadExecutor();
+        io.shutdown();
+        FakeMainThread main = new FakeMainThread();
+        AtomicBoolean called = new AtomicBoolean();
+        var service = new AsyncService(io, main);
+
+        try {
+            CompletableFuture<Void> f = service.supplyThenSync(() -> 1, v -> called.set(true));
+            main.drain();
+            assertTrue(f.isCompletedExceptionally(), "future deveria falhar, nao ficar pendente");
+        } catch (RejectedExecutionException sync) {
+            // falha sincrona tambem e aceitavel
+        }
+        assertFalse(called.get());
+    }
+
+    @Test
+    void rejectingMainThreadExecutorFailsFutureInsteadOfHanging() throws Exception {
+        Executor rejecting = r -> {
+            throw new RejectedExecutionException("main encerrada");
+        };
+        var service = new AsyncService(Runnable::run, rejecting);
+        AtomicBoolean called = new AtomicBoolean();
+        try {
+            CompletableFuture<Void> f = service.supplyThenSync(() -> 1, v -> called.set(true));
+            var ex = assertThrows(ExecutionException.class, () -> f.get(2, TimeUnit.SECONDS));
+            assertInstanceOf(RejectedExecutionException.class, root(ex));
+        } catch (RejectedExecutionException sync) {
+            // aceitavel
+        }
+        assertFalse(called.get());
+    }
+
+    // ---------- threads e ordem ----------
 }
