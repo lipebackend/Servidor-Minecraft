@@ -12,6 +12,7 @@
     <name>al3HG (parent)</name>
 
     <modules>
+        <module>al3hg-api</module>
         <module>al3hg-plugin</module>
     </modules>
 
