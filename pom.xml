@@ -17,8 +17,8 @@
     </modules>
 
     <properties>
+        <!-- Bytecode Java 21. O BUILD exige JDK 25+: o JAR com.infernalsuite.asp:api:4.2.0-SNAPSHOT foi compilado para Java 25 (class 69) e o javac não o lê com a flag release 21. -->
         <java.version>21</java.version>
-        <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
@@ -75,7 +75,8 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.13.0</version>
                     <configuration>
-                        <release>${java.version}</release>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
                         <encoding>${project.build.sourceEncoding}</encoding>
                     </configuration>
                 </plugin>
