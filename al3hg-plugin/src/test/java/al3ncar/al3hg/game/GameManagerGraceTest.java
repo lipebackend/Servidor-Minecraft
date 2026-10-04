@@ -8,7 +8,6 @@ import al3ncar.al3hg.support.EventCollector;
 import al3ncar.al3hg.support.GameFixture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockbukkit.mockbukkit.entity.PlayerMock;
 
@@ -55,7 +54,6 @@ class GameManagerGraceTest {
     }
 
     @Test
-    @Disabled("pendente: caminho direto COUNTDOWN -> ENDING (Programador Java ainda vai implementar)")
     void contagem_sem_minimo_vai_direto_de_countdown_para_ending() {
         f.addPlayer("a");
         PlayerMock b = f.addPlayer("b");
