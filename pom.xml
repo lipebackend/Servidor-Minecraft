@@ -14,6 +14,7 @@
     <modules>
         <module>al3hg-api</module>
         <module>al3hg-plugin</module>
+        <module>addons</module>
     </modules>
 
     <properties>
