@@ -144,12 +144,54 @@ garantir_jdk25() {
   ok "JAVA_HOME=$JAVA_HOME (válido só durante este script; para o seu terminal: export JAVA_HOME=$JAVA_HOME)."
 }
 
+# --- Repositório e build ------------------------------------------------------------------------
+clonar_ou_atualizar() {
+  if [ -d "$DESTINO/.git" ]; then
+    info "Atualizando $DESTINO (git pull)..."
+    git -C "$DESTINO" pull --ff-only || aviso "git pull falhou (alterações locais?); seguindo com o que já está em $DESTINO."
+  elif [ -e "$DESTINO" ] && [ -n "$(ls -A "$DESTINO" 2>/dev/null)" ]; then
+    erro "$DESTINO existe, não está vazio e não é um clone git. Use DESTINO=<outra pasta> ou remova-o."
+  else
+    info "Clonando $REPO_URL em $DESTINO ..."
+    git clone "$REPO_URL" "$DESTINO"
+  fi
+  DATA="$DESTINO/docker/data"
+}
+
+compilar() {
+  info "Rodando docker/preparar.sh (compila e copia os JARs)..."
+  bash "$DESTINO/docker/preparar.sh"
+}
+
+# --- Subir o servidor ---------------------------------------------------------------------------
+subir_servidor() {
+  local docker_cmd="docker"
+  [ "${#PREFIXO_DOCKER[@]}" -eq 0 ] || docker_cmd="sudo docker"
+  if [ "$SUBIR" != "s" ]; then
+    info "--sem-subir: tudo pronto. Para subir depois: cd $DESTINO/docker && JAVA_VERSION=$JAVA_VERSION $docker_cmd compose up --build -d"
+    return 0
+  fi
+  info "Subindo o servidor (docker compose up --build -d, Java $JAVA_VERSION)..."
+  (cd "$DESTINO/docker" && "${PREFIXO_DOCKER[@]}" env JAVA_VERSION="$JAVA_VERSION" MC_UID="$(id -u)" MC_GID="$(id -g)" \
+    docker compose up --build -d)
+  cat <<MSG
+
+Servidor iniciado (Java $JAVA_VERSION).
+  Ver logs:  cd $DESTINO/docker && $docker_cmd compose logs -f
+  Conectar:  localhost:25565 (Minecraft Java 1.21.11)
+  Parar:     cd $DESTINO/docker && $docker_cmd compose down
+MSG
+}
+
 main() {
   ler_argumentos "$@"
   checar_sistema
   checar_docker
   instalar_pacotes
   garantir_jdk25
+  clonar_ou_atualizar
+  compilar
+  subir_servidor
 }
 
 main "$@"
