@@ -1,38 +1,43 @@
 package al3ncar.al3hg.listener;
 
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
+import al3ncar.al3hg.api.event.HgPlayerEliminatedEvent;
+import al3ncar.al3hg.game.GameManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
-import al3ncar.al3hg.api.GameState;
-import al3ncar.al3hg.game.GameManager;
-import al3ncar.al3hg.util.LobbyTransfer;
+/**
+ * Morte e respawn (antes {@code RemoverDaPartidaDead}). Quem morre sai dos vivos e vira espectador de forma
+ * estável: respawna na arena e o modo SPECTATOR é aplicado um tick depois. Ninguém é mais enviado ao lobby no respawn.
+ */
+public final class PlayerDeathListener implements Listener {
 
-public class PlayerDeathListener implements Listener {
-    @EventHandler
-    public void onDeath(PlayerDeathEvent event) {
-        Player p = event.getEntity();
-        GameManager.current().removerJogadores(p);
-        p.setGameMode(GameMode.SPECTATOR);
-        atualizarContador(p);
+    private final GameManager game;
+
+    public PlayerDeathListener(GameManager game) {
+        this.game = game;
     }
 
-    @SuppressWarnings("deprecation")
-    public void atualizarContador(Player p) {
-        int vivos = GameManager.current().getJogadoresVivos();
-        if(GameManager.current().getJogadoresVivos() == 1){ 
-            GameManager.current().setStatusP(GameState.ENDING); 
-         }
-        Bukkit.broadcastMessage("§eJogadores vivos: §f" + vivos);
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onDeath(PlayerDeathEvent e) {
+        Player dead = e.getEntity();
+        if (!game.isAlive(dead.getUniqueId())) {
+            return;
+        }
+        Player killer = dead.getKiller();
+        game.eliminate(dead.getUniqueId(), killer == null ? null : killer.getUniqueId(),
+                HgPlayerEliminatedEvent.Reason.DEATH);
     }
 
     @EventHandler
-    public void onRespwam(PlayerRespawnEvent e) {
+    public void onRespawn(PlayerRespawnEvent e) {
         Player p = e.getPlayer();
-        LobbyTransfer.SendServer(p, "lobby");
+        game.respawnLocation(p).ifPresent(e::setRespawnLocation);
+        if (game.isSpectator(p.getUniqueId())) {
+            game.applySpectatorNextTick(p);
+        }
     }
 }

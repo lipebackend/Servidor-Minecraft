@@ -4,6 +4,7 @@ main: al3ncar.al3hg.Al3HgPlugin
 api-version: '1.21.11'
 load: STARTUP
 author: Dedectr
+description: Hunger Games para Paper com AdvancedSlimePaper
 
 permissions:
   hg.admin:
@@ -11,26 +12,6 @@ permissions:
 
 commands:
   hgc:
-    description: Hg Core
-    usage: /hgc
-    permission: hg.admin
-  
-  hgc fs:
-    description: Inicia a partida rapidamente
-    usage: /hgc fs
-    permission: hg.admin
-  
-  hgc stop:
-    description: Para a partida e volta todos ao lobby
-    usage: /hgc stop
-    permission: hg.admin
-  
-  hgc rest:
-    description: Reinicia a partida
-    usage: /hgc rest
-    permission: hg.admin
-  
-  hgc help:
-    description: Mostra ajuda dos comandos
-    usage: /hgc help
+    description: Comando principal do al3HG (start, fs, stop, rest, reload, help)
+    usage: /hgc <start|fs|stop|rest|reload|help>
     permission: hg.admin

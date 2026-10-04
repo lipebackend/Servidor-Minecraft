@@ -1,28 +1,30 @@
 package al3ncar.al3hg.listener;
 
-import al3ncar.al3hg.enums.PvpStatus;
-import al3ncar.al3hg.util.WorldBorderController;
-import al3ncar.al3hg.util.ArenaRules;
-import org.bukkit.GameMode;
-import org.bukkit.entity.Player;
+import al3ncar.al3hg.game.GameManager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
-import al3ncar.al3hg.util.Messages;
-import al3ncar.al3hg.game.GameManager;
+/**
+ * Entrada e saída de jogadores (antes {@code JoinManeger}). Não mexe mais na border nem nas regras do
+ * mundo a cada join, e trata o {@code PlayerQuitEvent}.
+ */
+public final class PlayerConnectionListener implements Listener {
 
+    private final GameManager game;
 
-public class PlayerConnectionListener implements Listener {
-    private String ps = Messages.PREFIXO;
-    private final ArenaRules mobs = new ArenaRules();
+    public PlayerConnectionListener(GameManager game) {
+        this.game = game;
+    }
+
     @EventHandler
-    public void JoinTituleServer(PlayerJoinEvent e) {
-        mobs.ControlerMax();
-        Player p = e.getPlayer();
-        p.setGameMode(GameMode.ADVENTURE);
-        GameManager.current().adicionarJogadores(p);
-        WorldBorderController.shrink("hgmapa", 100);
-        p.sendMessage(ps + "Bem vindo(a) a partida já ira começar");  
+    public void onJoin(PlayerJoinEvent e) {
+        game.handleJoin(e.getPlayer());
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent e) {
+        game.handleQuit(e.getPlayer());
     }
 }

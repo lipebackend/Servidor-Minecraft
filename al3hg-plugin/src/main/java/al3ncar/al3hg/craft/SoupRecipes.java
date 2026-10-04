@@ -5,28 +5,36 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapelessRecipe;
+import org.bukkit.plugin.Plugin;
 
-import al3ncar.al3hg.Al3HgPlugin;
+import java.util.List;
 
-public class SoupRecipes {
-    public static void RegisterRecipeMethods() {
-        // Namespaces //
-        NamespacedKey SopaCocoa = new NamespacedKey(Al3HgPlugin.getInts(), "sopa_de_cocoa");
-        NamespacedKey SopaCacto = new NamespacedKey(Al3HgPlugin.getInts(), "sopa_de_cacto");
-        // retorno //
-        ItemStack sopaFeita = new ItemStack(Material.MUSHROOM_STEW);
-        // coisas que eu registro o craft //
+/** Receitas das sopas (antes {@code Refil}); agora sem singleton estático. */
+public final class SoupRecipes {
 
-        ShapelessRecipe sopaCocoa = new ShapelessRecipe(SopaCocoa, sopaFeita);
-        sopaCocoa.addIngredient(Material.COCOA_BEANS);
-        sopaCocoa.addIngredient(Material.BOWL);
+    private final List<NamespacedKey> keys;
 
-        ShapelessRecipe sopaCacto = new ShapelessRecipe(SopaCacto, sopaFeita);
-        sopaCacto.addIngredient(Material.CACTUS);
-        sopaCacto.addIngredient(Material.BOWL);
+    public SoupRecipes(Plugin plugin) {
+        this.keys = List.of(new NamespacedKey(plugin, "sopa_de_cocoa"), new NamespacedKey(plugin, "sopa_de_cacto"));
+    }
 
-        // Registro da receipe //
-        Bukkit.getServer().addRecipe(sopaCocoa);
-        Bukkit.getServer().addRecipe(sopaCacto);
+    public void register() {
+        ItemStack soup = new ItemStack(Material.MUSHROOM_STEW);
+
+        ShapelessRecipe cocoa = new ShapelessRecipe(keys.get(0), soup);
+        cocoa.addIngredient(Material.COCOA_BEANS);
+        cocoa.addIngredient(Material.BOWL);
+
+        ShapelessRecipe cactus = new ShapelessRecipe(keys.get(1), soup);
+        cactus.addIngredient(Material.CACTUS);
+        cactus.addIngredient(Material.BOWL);
+
+        Bukkit.addRecipe(cocoa);
+        Bukkit.addRecipe(cactus);
+    }
+
+    /** Remove as receitas (onDisable), para não duplicar em /reload. */
+    public void unregister() {
+        keys.forEach(Bukkit::removeRecipe);
     }
 }

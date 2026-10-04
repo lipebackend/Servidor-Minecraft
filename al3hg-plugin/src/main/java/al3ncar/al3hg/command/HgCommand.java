@@ -1,94 +1,93 @@
 package al3ncar.al3hg.command;
 
-import al3ncar.al3hg.enums.PvpStatus;
-import al3ncar.al3hg.util.WorldBorderController;
-import al3ncar.al3hg.util.ArenaRules;
-import org.bukkit.Bukkit;
+import al3ncar.al3hg.Al3HgPlugin;
+import al3ncar.al3hg.game.GameManager;
+import al3ncar.al3hg.util.Messages;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
+import org.bukkit.command.TabExecutor;
 import org.jetbrains.annotations.NotNull;
 
-import al3ncar.al3hg.Al3HgPlugin;
-import al3ncar.al3hg.api.GameState;
-import al3ncar.al3hg.game.GameManager;
-import al3ncar.al3hg.game.MatchRunner;
-import al3ncar.al3hg.util.LobbyTransfer;
-import al3ncar.al3hg.util.Messages;
+import java.util.List;
+import java.util.Locale;
 
-public class HgCommand implements CommandExecutor {
-    private final GameState abs = null;
-    private String ps = Messages.PREFIXO;
-    private final MatchRunner b = new MatchRunner();
+/** Comando {@code /hgc} (antes {@code HgCore}). */
+public final class HgCommand implements TabExecutor {
+
+    private static final List<String> SUBCOMMANDS = List.of("start", "fs", "stop", "rest", "reload", "help");
+
+    private final Al3HgPlugin plugin;
+    private final GameManager game;
+
+    public HgCommand(Al3HgPlugin plugin, GameManager game) {
+        this.plugin = plugin;
+        this.game = game;
+    }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label,
             @NotNull String @NotNull [] args) {
         if (!sender.hasPermission("hg.admin")) {
-            sender.sendMessage(ps + "§aVocê não tem permição pra usar esse comando!");
-            return false;
-        }
-        if (args.length == 0) {
-            sender.sendMessage(ps + "Use /" + label + " help");
+            Messages.send(sender, "§cVocê não tem permissão para usar esse comando!");
             return true;
         }
-        switch (args[0]) {
-            case "reload": {
-                try {
-                    Al3HgPlugin.getInts().reloadConfig();
-                    sender.sendMessage(ps + "§aConfigurações recarregadas!");
-                    return true;
-                } catch (Exception e) {
-                    sender.sendMessage(ps + "§aFalha a recarregar o plugin");
-                    sender.sendMessage(ps + "§aERRO " + e);
-                    return true;
-                }
-            }
-            case "start": {
-                try {
-                    for (Player p : Bukkit.getOnlinePlayers()) {
-                        p.teleportAsync(p.getWorld().getSpawnLocation());;
-                    }
-                } catch (Exception e){
-                    sender.sendMessage("Erro no comando" + e);
-                }
-                GameManager.current().setStatusP(GameState.RUNNING);
-                GameManager.current().setPvpStatus(PvpStatus.ON);
-                WorldBorderController.shrink("hgmapa", 300);
-                b.Partidakk();
-                return true;
-            }
-            case "stop": {
-                GameManager.current().setStatusP(GameState.ENDING);
-                try {
-                    for (Player p : Bukkit.getOnlinePlayers()) {
-                        LobbyTransfer.SendServer(p, "lobby");
-                    }
-                } catch (Exception e){
-                    sender.sendMessage("Erro no comando" + e);
-                }
-                Bukkit.getServer().shutdown();
-                return true;
-            }
-            case "rest": {
-                for (Player p : Bukkit.getOnlinePlayers()) {
-                    LobbyTransfer.SendServer(p, "lobby");
-                }
-                Bukkit.getServer().shutdown();
-                return true;
-            }
-            case "help": {
-                sender.sendMessage(ps + "/hgc reload > Reload do plugin");
-                sender.sendMessage(ps + "/hgc start > Start partida");
-                sender.sendMessage(ps + "/hgc stop > ele para a partida");
-                sender.sendMessage(ps + "/hgc rest > ele restarta a partida");
-                return true;
-            }
-            default: {
-                sender.sendMessage(ps + "ERRO na syntax");
-                return false;
-            }
+        if (args.length == 0) {
+            Messages.send(sender, "Use /" + label + " help");
+            return true;
         }
+        switch (args[0].toLowerCase(Locale.ROOT)) {
+            case "reload" -> {
+                try {
+                    plugin.reloadSettings();
+                    Messages.send(sender, "§aConfigurações recarregadas!");
+                } catch (RuntimeException e) {
+                    Messages.send(sender, "§cFalha ao recarregar o plugin: " + e);
+                }
+            }
+            case "start" -> reportStart(sender, game.start(false));
+            case "fs" -> reportStart(sender, game.start(true));
+            case "stop" -> {
+                if (game.stop()) {
+                    Messages.send(sender, "§aEncerrando a partida: enviando os jogadores ao lobby...");
+                } else {
+                    Messages.send(sender, "§cNão há partida em andamento.");
+                }
+            }
+            case "rest" -> {
+                if (game.restart()) {
+                    Messages.send(sender, "§aReiniciando: jogadores vão ao lobby e a arena será recriada no próximo /" + label + " start.");
+                } else {
+                    Messages.send(sender, "§cNão há partida em andamento.");
+                }
+            }
+            case "help" -> {
+                Messages.send(sender, "/hgc start > inicia a partida (com contagem)");
+                Messages.send(sender, "/hgc fs > início rápido (sem contagem)");
+                Messages.send(sender, "/hgc stop > para a partida e envia todos ao lobby");
+                Messages.send(sender, "/hgc rest > reinicia a partida");
+                Messages.send(sender, "/hgc reload > recarrega a configuração");
+            }
+            default -> Messages.send(sender, "§cSubcomando desconhecido. Use /" + label + " help");
+        }
+        return true;
+    }
+
+    private void reportStart(CommandSender sender, GameManager.StartResult result) {
+        switch (result) {
+            case OK -> Messages.send(sender, "§aPartida iniciada.");
+            case ALREADY_RUNNING -> Messages.send(sender, "§cJá existe uma partida em andamento.");
+            case NOT_ENOUGH_PLAYERS -> Messages.send(sender, "§cJogadores insuficientes (use /hgc fs para forçar).");
+            case ARENA_UNAVAILABLE -> Messages.send(sender, "§cArena indisponível (veja o console: mapa-modelo ausente ou falha ao carregar).");
+        }
+    }
+
+    @Override
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias,
+            @NotNull String @NotNull [] args) {
+        if (!sender.hasPermission("hg.admin") || args.length != 1) {
+            return List.of();
+        }
+        String prefix = args[0].toLowerCase(Locale.ROOT);
+        return SUBCOMMANDS.stream().filter(s -> s.startsWith(prefix)).toList();
     }
 }
