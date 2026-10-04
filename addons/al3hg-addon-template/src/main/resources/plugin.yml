@@ -1,0 +1,7 @@
+name: Al3HGTemplate
+version: '${project.version}'
+main: al3ncar.al3hg.addon.template.TemplateAddon
+api-version: '1.21'
+description: Modelo de addon para o al3HG
+author: al3ncar
+depend: [Al3HG]

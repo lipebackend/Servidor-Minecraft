@@ -18,6 +18,7 @@
 
     <modules>
         <module>al3hg-addon-stats</module>
+        <module>al3hg-addon-template</module>
     </modules>
 
     <properties>
