@@ -473,3 +473,9 @@ generated-test-sources/
 !config.example.yml
 !config.example.yaml
 !config.example.json
+
+# =========================================================
+# Servidor local em Docker (server.jar, plugins, mundos, eula.txt)
+# =========================================================
+
+docker/data/

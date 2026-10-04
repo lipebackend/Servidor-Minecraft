@@ -1,0 +1,24 @@
+# al3HG - servidor local de testes (somente na máquina do desenvolvedor).
+# Uso: veja docker/README.md. Rode os comandos a partir da pasta docker/.
+services:
+  mc:
+    build:
+      context: .
+      args:
+        # Versão do Java da imagem: JAVA_VERSION=21 docker compose up --build
+        JAVA_VERSION: ${JAVA_VERSION:-25}
+        # No Linux, defina MC_UID/MC_GID com o resultado de `id -u` / `id -g` se não forem 1000.
+        MC_UID: ${MC_UID:-1000}
+        MC_GID: ${MC_GID:-1000}
+    image: al3hg-mc:java${JAVA_VERSION:-25}
+    container_name: al3hg-mc
+    ports:
+      - "25565:25565"
+    volumes:
+      - ./data:/server
+    environment:
+      MEMORY: ${MEMORY:-2G}
+    # stdin_open + tty permitem usar o console do servidor (docker compose attach mc).
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
