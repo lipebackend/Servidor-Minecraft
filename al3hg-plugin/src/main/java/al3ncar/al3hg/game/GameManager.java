@@ -363,6 +363,8 @@ public final class GameManager implements HgGame {
         fsm.transition(GameState.WAITING);
         match = null;
         cancelTasks();
+        // Quem continua online (ex.: evacuado pelo dispose) volta ao modo de espera, não fica em SPECTATOR/SURVIVAL.
+        Bukkit.getOnlinePlayers().forEach(p -> p.setGameMode(GameMode.ADVENTURE));
         if (shutdownRequested || settings.get().shutdownAfterEnd()) {
             shutdownRequested = false;
             plugin.getLogger().info("Arena descartada; desligando o servidor conforme a configuração.");
