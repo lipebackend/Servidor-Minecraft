@@ -294,6 +294,11 @@ public final class GameManager implements HgGame {
     /** GRACE: SURVIVAL para os vivos, border inicial, HgGameStartEvent e agenda o fim da graça. */
     private void beginGrace() {
         HgSettings s = settings.get();
+        if (match.isOver()) {
+            // Sem jogadores suficientes (ex.: /hgc fs com 0 jogadores, ou saída durante a contagem): não deixa a partida sem vencedor.
+            endMatch(match.soleSurvivor().orElse(null), s.endingDelaySeconds());
+            return;
+        }
         for (UUID id : match.alivePlayers()) {
             Player p = Bukkit.getPlayer(id);
             if (p != null) {
