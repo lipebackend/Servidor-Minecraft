@@ -1,0 +1,17 @@
+# Configuracao do addon de estatisticas do al3HG.
+
+database:
+  # Arquivo SQLite. Relativo a pasta de dados do addon (plugins/Al3HGStats) ou caminho absoluto.
+  file: stats.db
+
+scoring:
+  # Pontuacao = abates * kill-points + vitorias * win-points
+  kill-points: 1
+  win-points: 5
+
+top:
+  # Quantas posicoes o /hgtop mostra (1 a 50).
+  size: 10
+
+# Quem sai do servidor durante a partida conta uma morte?
+count-quit-as-death: true

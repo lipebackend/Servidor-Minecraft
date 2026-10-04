@@ -1,0 +1,27 @@
+name: Al3HGStats
+version: '${project.version}'
+main: al3ncar.al3hg.addon.stats.bukkit.StatsAddon
+api-version: '1.21.11'
+description: Estatisticas e ranking de jogadores do al3HG
+author: al3ncar
+depend: [Al3HG]
+
+# sqlite-jdbc NAO e embutido (sem shade/relocate): o Paper baixa do Maven Central ao carregar.
+# A versao vem da property sqlite-jdbc.version do addons/pom.xml.
+libraries:
+  - org.xerial:sqlite-jdbc:${sqlite-jdbc.version}
+
+permissions:
+  hg.stats:
+    description: Permite consultar estatisticas (/hgstats) e ranking (/hgtop)
+    default: true
+
+commands:
+  hgstats:
+    description: Mostra as estatisticas de um jogador
+    usage: /hgstats [jogador]
+    permission: hg.stats
+  hgtop:
+    description: Mostra o ranking de vitorias ou abates
+    usage: /hgtop [wins|kills]
+    permission: hg.stats

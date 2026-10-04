@@ -16,6 +16,16 @@
     <description>Estatisticas de jogadores: regras, ranking e repositorios.</description>
 
     <dependencies>
+        <dependency>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>al3ncar.al3hg</groupId>
+            <artifactId>al3hg-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <!-- provided: o Paper baixa a biblioteca via "libraries:" do plugin.yml (sem shade/relocate). -->
         <dependency>
             <groupId>org.xerial</groupId>
@@ -23,4 +33,13 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
 </project>
