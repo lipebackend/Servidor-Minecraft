@@ -44,7 +44,8 @@ public final class InMemoryStatsRepository implements StatsRepository {
     public CompletableFuture<PlayerStats> update(UUID uuid, UnaryOperator<PlayerStats> change) {
         try {
             return CompletableFuture.completedFuture(data.compute(uuid, (id, current) ->
-                    change.apply(current != null ? current : PlayerStats.empty(id))));
+                    Objects.requireNonNull(change.apply(current != null ? current : PlayerStats.empty(id)),
+                            "change retornou null")));
         } catch (RuntimeException e) {
             return CompletableFuture.failedFuture(e);
         }
