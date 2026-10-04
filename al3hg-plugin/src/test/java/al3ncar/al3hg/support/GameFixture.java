@@ -24,7 +24,7 @@ public final class GameFixture implements AutoCloseable {
 
     /** Conecta um jogador falso (com teleportAsync funcional). */
     public PlayerMock addPlayer(String name) {
-        PlayerMock p = new TestPlayer(server, name);
+        PlayerMock p = new TestPlayer(server, name, arena.calls);
         server.addPlayer(p);
         return p;
     }

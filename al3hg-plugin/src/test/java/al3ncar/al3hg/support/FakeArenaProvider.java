@@ -11,6 +11,7 @@ import java.util.Optional;
 public final class FakeArenaProvider implements ArenaProvider {
 
     private final ServerMock server;
+    /** Chamadas ao provider (e envios ao lobby, via TestPlayer), em ordem. */
     public final List<String> calls = new ArrayList<>();
     private String world;
 
