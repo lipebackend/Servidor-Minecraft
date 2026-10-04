@@ -94,7 +94,7 @@ public final class AspArenaProvider implements ArenaProvider {
             String loaded = instance.getBukkitWorld().getName();
             worlds.put(matchId, loaded);
             return loaded;
-        } catch (WorldAlreadyExistsException | IOException | IllegalArgumentException e) {
+        } catch (WorldAlreadyExistsException | IOException | RuntimeException e) {
             cloneLoader.deleteQuietly(name);
             throw new ArenaException("Falha ao criar a arena " + name, e);
         }
