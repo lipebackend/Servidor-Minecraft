@@ -2,28 +2,16 @@ package al3ncar.al3hg.addon.template;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.server.ServerLoadEvent;
 
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Listener de exemplo.
- *
- * <p>TODO(fase 1 - al3hg-api): trocar os eventos PLACEHOLDER do Bukkit pelos
- * eventos reais do al3HG assim que {@code al3hg-api} existir:
- * <pre>
- *   ServerLoadEvent      -> al3ncar.al3hg.api.event.HgGameStartEvent
- *   PlayerDeathEvent     -> al3ncar.al3hg.api.event.HgPlayerEliminatedEvent (player(), killer())
- * </pre>
- * Contrato da API: esses eventos sao disparados sempre na thread principal.
- * Tambem checar {@code game.state()} (HgGame via ServicesManager) antes de agir.
+ * Reacao de exemplo aos eventos do jogo. Depende apenas de {@link GameEventHandler};
+ * os eventos concretos (hoje placeholders do Bukkit) ficam em {@link GameEventAdapter}.
  */
-public final class ExampleListener implements Listener {
+public final class ExampleListener implements GameEventHandler {
 
     private final AsyncService asyncService;
     private final Logger logger;
@@ -33,23 +21,18 @@ public final class ExampleListener implements Listener {
         this.logger = logger;
     }
 
-    /** TODO(fase 1): PLACEHOLDER de HgGameStartEvent. */
-    @EventHandler
-    public void onGameStart(ServerLoadEvent event) {
+    @Override
+    public void onGameStart() {
         Bukkit.broadcastMessage(Messages.gameStarted());
     }
 
-    /** TODO(fase 1): PLACEHOLDER de HgPlayerEliminatedEvent. */
-    @EventHandler
-    public void onPlayerEliminated(PlayerDeathEvent event) {
-        // Thread principal: copie o que precisa do Bukkit (valores simples) ...
-        UUID playerId = event.getEntity().getUniqueId();
-        String name = event.getEntity().getName();
-
-        // ... trabalhe fora da thread principal sem usar Bukkit ...
+    @Override
+    public void onPlayerEliminated(UUID playerId, String playerName) {
+        // Thread principal: os valores simples ja foram copiados pelo adapter.
+        // Trabalha fora da thread principal sem usar Bukkit ...
         asyncService.supplyThenSync(
-                () -> AsyncService.expensiveCalculation(name),
-                // ... e volte para a thread principal antes de tocar no jogador.
+                () -> AsyncService.expensiveCalculation(playerName),
+                // ... e volta para a thread principal antes de tocar no jogador.
                 result -> {
                     Player player = Bukkit.getPlayer(playerId); // pode ter saido nesse meio-tempo
                     if (player != null) {

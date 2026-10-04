@@ -5,3 +5,9 @@ api-version: '1.21'
 description: Modelo de addon para o al3HG
 author: al3ncar
 depend: [Al3HG]
+
+# Dependencias Maven de runtime (ex.: JDBC) NAO devem ser embutidas com shade/relocate.
+# Declare-as aqui; o Paper as baixa do Maven Central ao carregar o plugin.
+# Exemplo (o addon de stats usara isto; mantenha a versao igual a property sqlite-jdbc.version do pom pai):
+# libraries:
+#   - org.xerial:sqlite-jdbc:3.47.1.0

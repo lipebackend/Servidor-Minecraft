@@ -25,7 +25,8 @@ public final class TemplateAddon extends JavaPlugin {
         });
 
         AsyncService asyncService = new AsyncService(ioExecutor, mainThreadExecutor());
-        getServer().getPluginManager().registerEvents(new ExampleListener(asyncService, getLogger()), this);
+        getServer().getPluginManager().registerEvents(
+                new GameEventAdapter(new ExampleListener(asyncService, getLogger())), this);
     }
 
     @Override

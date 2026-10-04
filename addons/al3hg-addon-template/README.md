@@ -16,7 +16,9 @@ Modelo para criar novos addons do al3HG. Cada addon = um módulo = um JAR.
 ## O que vem pronto
 
 - `TemplateAddon`: `JavaPlugin` sem estado estático; cria um executor próprio e o fecha no `onDisable`.
-- `ExampleListener`: exemplo de listener (ver TODO abaixo).
+- `GameEventAdapter`: ÚNICA classe que conhece os eventos de jogo (hoje placeholders do Bukkit). Traduz para `GameEventHandler`.
+- `GameEventHandler`: interface sem tipos do Bukkit com os callbacks do jogo (`onGameStart`, `onPlayerEliminated`).
+- `ExampleListener`: implementa `GameEventHandler`; é onde fica a lógica do addon (ver TODO abaixo).
 - `AsyncService`: roda trabalho em `CompletableFuture` no executor próprio e volta à thread principal
   pelo scheduler (`TemplateAddon#mainThreadExecutor`). Testável sem Bukkit (`AsyncServiceTest`).
 
@@ -29,6 +31,15 @@ Modelo para criar novos addons do al3HG. Cada addon = um módulo = um JAR.
 ## Pendente até a `al3hg-api` existir (fase 1)
 
 - Adicionar a dependência `al3hg-api` (scope `provided`) no `pom.xml` (há um bloco comentado).
-- Em `ExampleListener`, trocar os eventos placeholder pelos reais:
+- Em `GameEventAdapter` (só nele), trocar os eventos placeholder pelos reais:
   `ServerLoadEvent` → `HgGameStartEvent` e `PlayerDeathEvent` → `HgPlayerEliminatedEvent`.
+  `ExampleListener` e o resto do addon não mudam.
 - Ler o estado da partida via `HgGame` (`Bukkit.getServicesManager().load(HgGame.class)`).
+
+## Bibliotecas de runtime: `libraries:` no plugin.yml (sem shade/relocate)
+
+Se o addon precisar de uma biblioteca Maven (ex.: JDBC), **não** use shade/relocate: declare-a em
+`libraries:` no `plugin.yml` (o Paper baixa do Maven Central ao carregar) e deixe a dependência no pom
+como `provided`. O `plugin.yml` deste template traz um exemplo comentado
+(`org.xerial:sqlite-jdbc:3.47.1.0`, usado pelo `al3hg-addon-stats`). Mantenha a versão igual à property
+`sqlite-jdbc.version` do pom pai. O template em si não precisa de nenhuma biblioteca.
