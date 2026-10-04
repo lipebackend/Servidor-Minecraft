@@ -71,7 +71,7 @@ src/main/java/al3ncar/al3hg/
 mvn clean package
 ```
 
-O JAR será gerado em `target/al3hg-1.2.1.jar`.
+O JAR será gerado em `al3hg-plugin/target/al3hg-2.0.0-SNAPSHOT.jar`.
 
 ## Tarefas
 
