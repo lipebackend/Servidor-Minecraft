@@ -14,6 +14,7 @@ anuncia o vencedor, envia todos ao lobby via BungeeCord **e só então descarta 
 |--------|-----------|
 | `al3hg-api` | Interfaces e eventos públicos (`HgGame`, `GameState`, `Hg*Event`). Sem lógica. Addons usam com escopo `provided`. |
 | `al3hg-plugin` | O plugin al3HG (artefato `al3hg`). Implementa a API e empacota o `al3hg-api` no JAR. |
+| `addons` | Agregador dos addons (cada um = um módulo = um JAR): `al3hg-addon-stats` (estatísticas, `/hgstats`, `/hgtop`) e `al3hg-addon-template` (modelo para novos addons). |
 
 Coordenadas: `al3ncar.al3hg:al3hg-api:2.0.0-SNAPSHOT`.
 
@@ -31,6 +32,10 @@ Coordenadas: `al3ncar.al3hg:al3hg-api:2.0.0-SNAPSHOT`.
 No `plugin.yml` do addon: `depend: [Al3HG]`. Consulta: `Bukkit.getServicesManager().load(HgGame.class)`.
 Eventos (todos síncronos, thread principal): `HgStateChangeEvent`, `HgGameStartEvent`,
 `HgPlayerEliminatedEvent`, `HgGameEndEvent`.
+
+Os poms dos addons herdam de `addons/pom.xml` (que herda de `al3hg-parent`): `paper-api` e `al3hg-api`
+ficam `provided`; bibliotecas de runtime (ex.: `sqlite-jdbc`) vão em `libraries:` no `plugin.yml`, sem shade.
+Para criar um addon copie `addons/al3hg-addon-template` (ver o README dele).
 
 ## Máquina de estados
 
