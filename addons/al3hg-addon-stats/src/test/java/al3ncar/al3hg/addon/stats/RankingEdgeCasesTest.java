@@ -97,4 +97,81 @@ class RankingEdgeCasesTest {
         var a = s(1, 1, 1, 0, 0);
         assertEquals(2, Ranking.top(List.of(a, a), RankingType.WINS, 10).size());
     }
+
+    @Test
+    void limitEqualToSizeAndMaxIntWork() {
+        var list = List.of(s(1, 1, 1, 0, 0), s(2, 2, 2, 0, 0));
+        assertEquals(2, Ranking.top(list, RankingType.WINS, 2).size());
+        assertEquals(2, Ranking.top(list, RankingType.WINS, Integer.MAX_VALUE).size());
+    }
+
+    @Test
+    void nullArgumentsAreRejected() {
+        assertThrows(NullPointerException.class, () -> Ranking.top(null, RankingType.WINS, 1));
+        assertThrows(NullPointerException.class, () -> Ranking.top(List.of(s(1, 0, 0, 0, 0)), null, 1));
+        assertThrows(NullPointerException.class, () -> Ranking.comparator(null));
+    }
+
+    @Test
+    void worksWithUnorderedSetInput() {
+        Set<PlayerStats> set = new java.util.HashSet<>(List.of(s(3, 0, 0, 0, 0), s(1, 0, 0, 0, 0), s(2, 0, 0, 0, 0)));
+        assertEquals(List.of(uuid(1), uuid(2), uuid(3)), ids(Ranking.top(set, RankingType.WINS, 3)));
+    }
+
+    @Test
+    void comparatorIsConsistentAntisymmetricAndTransitiveOnRandomData() {
+        Random rnd = new Random(1234);
+        List<PlayerStats> data = new ArrayList<>();
+        for (int i = 0; i < 60; i++) {
+            data.add(new PlayerStats(new UUID(rnd.nextLong(), rnd.nextLong()),
+                    rnd.nextInt(3), rnd.nextInt(3), rnd.nextInt(3), rnd.nextInt(3)));
+        }
+        for (RankingType t : RankingType.values()) {
+            var cmp = Ranking.comparator(t);
+            for (PlayerStats a : data) {
+                assertEquals(0, cmp.compare(a, a));
+                for (PlayerStats b : data) {
+                    assertEquals(Integer.signum(cmp.compare(a, b)), -Integer.signum(cmp.compare(b, a)));
+                    if (!a.equals(b)) {
+                        assertNotEquals(0, cmp.compare(a, b), "ordem total: so empata se for o mesmo jogador");
+                    }
+                    if (cmp.compare(a, b) < 0) {
+                        for (PlayerStats c : data) {
+                            if (cmp.compare(b, c) < 0) {
+                                assertTrue(cmp.compare(a, c) < 0, "transitividade");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
+    void dataWithManyTiesIsStableAcrossShufflesForBothTypes() {
+        Random rnd = new Random(99);
+        List<PlayerStats> base = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            base.add(new PlayerStats(new UUID(rnd.nextLong(), rnd.nextLong()),
+                    rnd.nextInt(2), rnd.nextInt(2), rnd.nextInt(2), rnd.nextInt(2)));
+        }
+        for (RankingType t : RankingType.values()) {
+            List<PlayerStats> expected = Ranking.top(base, t, 100);
+            for (int i = 0; i < 10; i++) {
+                List<PlayerStats> copy = new ArrayList<>(base);
+                Collections.shuffle(copy, rnd);
+                assertEquals(expected, Ranking.top(copy, t, 100));
+            }
+        }
+    }
+
+    @Test
+    void topNIsPrefixOfFullRanking() {
+        List<PlayerStats> list = new ArrayList<>();
+        for (int i = 1; i <= 20; i++) {
+            list.add(s(i, i % 4, i % 3, i % 2, i % 5));
+        }
+        List<PlayerStats> full = Ranking.top(list, RankingType.WINS, 20);
+        assertEquals(full.subList(0, 7), Ranking.top(list, RankingType.WINS, 7));
+    }
 }
