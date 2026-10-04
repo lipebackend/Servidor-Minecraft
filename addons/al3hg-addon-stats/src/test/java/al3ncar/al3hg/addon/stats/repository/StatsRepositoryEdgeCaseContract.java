@@ -92,4 +92,95 @@ abstract class StatsRepositoryEdgeCaseContract {
         }
         assertEquals(3, await(repository().top(RankingType.KILLS, Integer.MAX_VALUE)).size());
     }
+
+    @Test
+    void topResultIsImmutable() throws Exception {
+        await(repository().save(PlayerStats.empty(uuid(1))));
+        List<PlayerStats> top = await(repository().top(RankingType.WINS, 5));
+        assertThrows(UnsupportedOperationException.class, () -> top.add(PlayerStats.empty(uuid(9))));
+    }
+
+    @Test
+    void topMatchesPureRankingOnTieHeavyRandomData() throws Exception {
+        Random rnd = new Random(2024);
+        List<PlayerStats> all = new ArrayList<>();
+        for (int i = 0; i < 80; i++) {
+            PlayerStats s = new PlayerStats(new UUID(rnd.nextLong(), rnd.nextLong()),
+                    rnd.nextInt(3), rnd.nextInt(3), rnd.nextInt(3), rnd.nextInt(3));
+            all.add(s);
+            await(repository().save(s));
+        }
+        for (RankingType t : RankingType.values()) {
+            for (int limit : new int[]{1, 7, 80, 500}) {
+                assertEquals(Ranking.top(all, t, limit), await(repository().top(t, limit)),
+                        "SQL/Memoria divergem de Ranking para " + t + " limit=" + limit);
+            }
+        }
+    }
+
+    // ---------- argumentos invalidos ----------
+
+    @Test
+    void nullArgumentsAreRejected() {
+        assertRejectsNull(() -> repository().load(null));
+        assertRejectsNull(() -> repository().save(null));
+        assertRejectsNull(() -> repository().top(null, 1));
+        assertRejectsNull(() -> repository().update(null, s -> s));
+        assertRejectsNull(() -> repository().update(uuid(1), null));
+    }
+
+    // ---------- update: falhas, atomicidade, ordem ----------
+
+    @Test
+    void failingChangeFailsFutureKeepsStateAndDoesNotPoisonRepository() throws Exception {
+        PlayerStats before = new PlayerStats(uuid(1), 4, 3, 2, 1);
+        await(repository().save(before));
+
+        var ex = assertThrows(ExecutionException.class, () -> await(repository().update(uuid(1), s -> {
+            throw new IllegalStateException("boom");
+        })));
+        assertInstanceOf(IllegalStateException.class, root(ex));
+
+        assertEquals(before, await(repository().load(uuid(1))).orElseThrow());
+        assertEquals(5, await(repository().update(uuid(1), StatsRules.defaults()::recordKill)).kills());
+    }
+
+    @Test
+    void failingChangeOnUnknownPlayerDoesNotCreateRow() throws Exception {
+        assertThrows(ExecutionException.class, () -> await(repository().update(uuid(7), s -> {
+            throw new IllegalStateException("boom");
+        })));
+        assertTrue(await(repository().load(uuid(7))).isEmpty());
+    }
+
+    @Test
+    void changeProducingInvalidStatsFailsAndKeepsState() throws Exception {
+        PlayerStats before = new PlayerStats(uuid(1), 0, 0, 0, 0);
+        await(repository().save(before));
+        var ex = assertThrows(ExecutionException.class,
+                () -> await(repository().update(uuid(1), s -> s.withKills(-1))));
+        assertInstanceOf(IllegalArgumentException.class, root(ex));
+        assertEquals(before, await(repository().load(uuid(1))).orElseThrow());
+    }
+
+    @Test
+    void changeReceivesEmptyStatsForUnknownPlayer() throws Exception {
+        PlayerStats seen = await(repository().update(uuid(3), s -> {
+            assertEquals(PlayerStats.empty(uuid(3)), s);
+            return s;
+        }));
+        assertEquals(PlayerStats.empty(uuid(3)), seen);
+        assertTrue(await(repository().load(uuid(3))).isPresent());
+    }
+
+    /** Regressao (corrigido na main): contrato diz "devolve o valor gravado"; retornar null nao deveria ser aceito/apagar o jogador. */
+    @Test
+    void changeReturningNullMustFailAndKeepState() throws Exception {
+        PlayerStats before = new PlayerStats(uuid(1), 2, 2, 2, 2);
+        await(repository().save(before));
+        CompletableFuture<PlayerStats> f = repository().update(uuid(1), s -> null);
+        assertThrows(ExecutionException.class, () -> f.get(10, TimeUnit.SECONDS),
+                "update com change==null deveria falhar");
+        assertEquals(before, await(repository().load(uuid(1))).orElseThrow());
+    }
 }
