@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 
 /**
  * Reacao de exemplo aos eventos do jogo. Depende apenas de {@link GameEventHandler};
- * os eventos concretos (hoje placeholders do Bukkit) ficam em {@link GameEventAdapter}.
+ * os eventos concretos (eventos reais da al3hg-api) ficam em {@link GameEventAdapter}.
  */
 public final class ExampleListener implements GameEventHandler {
 

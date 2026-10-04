@@ -21,6 +21,11 @@
             <artifactId>paper-api</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>al3ncar.al3hg</groupId>
+            <artifactId>al3hg-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>

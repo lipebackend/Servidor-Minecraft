@@ -1,24 +1,18 @@
 package al3ncar.al3hg.addon.template;
 
+import al3ncar.al3hg.api.event.HgGameStartEvent;
+import al3ncar.al3hg.api.event.HgPlayerEliminatedEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.server.ServerLoadEvent;
 
 import java.util.Objects;
+import java.util.UUID;
 
 /**
- * UNICO lugar do addon que conhece os eventos de jogo. Hoje usa eventos
- * PLACEHOLDER do Bukkit; o resto do addon depende apenas de {@link GameEventHandler}.
- *
- * <p>TODO(fase 1 - al3hg-api): trocar SOMENTE esta classe pelos eventos reais:
- * <pre>
- *   ServerLoadEvent  -> al3ncar.al3hg.api.event.HgGameStartEvent
- *   PlayerDeathEvent -> al3ncar.al3hg.api.event.HgPlayerEliminatedEvent
- *                       (usar event.player() em vez de event.getEntity())
- * </pre>
- * Contrato da API: eventos disparados sempre na thread principal. Considere
- * tambem checar {@code game.state()} (HgGame via ServicesManager) antes de repassar.
+ * UNICO lugar do addon que conhece os eventos da al3hg-api. O resto do addon depende
+ * apenas de {@link GameEventHandler}. Os eventos sao disparados na thread principal.
+ * Considere tambem checar {@code game.state()} (HgGame via ServicesManager) antes de repassar.
  */
 public final class GameEventAdapter implements Listener {
 
@@ -28,15 +22,15 @@ public final class GameEventAdapter implements Listener {
         this.handler = Objects.requireNonNull(handler, "handler");
     }
 
-    /** TODO(fase 1): PLACEHOLDER de HgGameStartEvent. */
     @EventHandler
-    public void onGameStart(ServerLoadEvent event) {
+    public void onGameStart(HgGameStartEvent event) {
         handler.onGameStart();
     }
 
-    /** TODO(fase 1): PLACEHOLDER de HgPlayerEliminatedEvent. */
     @EventHandler
-    public void onPlayerEliminated(PlayerDeathEvent event) {
-        handler.onPlayerEliminated(event.getEntity().getUniqueId(), event.getEntity().getName());
+    public void onPlayerEliminated(HgPlayerEliminatedEvent event) {
+        UUID playerId = event.getPlayer();
+        String name = Bukkit.getOfflinePlayer(playerId).getName(); // so le o cache local, sem rede
+        handler.onPlayerEliminated(playerId, name != null ? name : playerId.toString());
     }
 }
