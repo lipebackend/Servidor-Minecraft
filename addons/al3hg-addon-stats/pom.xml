@@ -14,4 +14,13 @@
     <artifactId>al3hg-addon-stats</artifactId>
     <name>al3HG Addon - Stats</name>
     <description>Estatisticas de jogadores: regras, ranking e repositorios.</description>
+
+    <dependencies>
+        <!-- provided: o Paper baixa a biblioteca via "libraries:" do plugin.yml (sem shade/relocate). -->
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
 </project>
