@@ -17,6 +17,7 @@
     <description>Agregador dos addons do al3HG. Cada addon = um modulo = um JAR.</description>
 
     <modules>
+        <module>al3hg-addon-stats</module>
     </modules>
 
     <properties>
