@@ -48,8 +48,24 @@ public final class FakeServer {
     });
 
     public static void install() {
-        if (Bukkit.getServer() == null) Bukkit.setServer(I.server());
+        if (Bukkit.getServer() == null) setBukkitServer(I.server());
         I.reset();
+    }
+
+    /** Bukkit.setServer exige ServerBuildInfo (só existe num Paper real); grava o campo direto. */
+    public static void setBukkitServer(Server server) {
+        try {
+            var f = Bukkit.class.getDeclaredField("server");
+            f.setAccessible(true);
+            f.set(null, server);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /** Desfaz a instalação (ex.: antes de um teste com MockBukkit na mesma JVM). */
+    public static void uninstall() {
+        setBukkitServer(null);
     }
 
     public void reset() {
@@ -77,6 +93,11 @@ public final class FakeServer {
                 .sorted(Comparator.comparingLong(Task::delay)).toList().forEach(t -> t.action().run());
     }
 
+    /** ArenaRules usa GameRule (precisa de registry do Paper): para essa chamada o mundo "não está carregado". */
+    private static boolean fromArenaRules() {
+        return Arrays.stream(Thread.currentThread().getStackTrace()).anyMatch(f -> f.getClassName().endsWith(".ArenaRules"));
+    }
+
     private Server server() {
         BukkitScheduler scheduler = stub(BukkitScheduler.class, (m, a) -> {
             if (!m.startsWith("run") || !(a[1] instanceof Runnable r)) return PASS;
@@ -90,7 +111,7 @@ public final class FakeServer {
             case "getName", "getVersion", "getBukkitVersion" -> "fake";
             case "getOnlinePlayers" -> List.copyOf(online.values());
             case "getPlayer" -> online.get(a[0]);
-            case "getWorld" -> ARENA.equals(a[0]) ? world : null;
+            case "getWorld" -> ARENA.equals(a[0]) && !fromArenaRules() ? world : null;
             case "getOfflinePlayer" -> stub(OfflinePlayer.class, (om, oa) -> om.equals("getName") ? "alguem" : PASS);
             case "getScheduler" -> scheduler;
             case "getPluginManager" -> pm;
