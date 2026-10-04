@@ -183,4 +183,99 @@ abstract class StatsRepositoryEdgeCaseContract {
                 "update com change==null deveria falhar");
         assertEquals(before, await(repository().load(uuid(1))).orElseThrow());
     }
+
+    /** Regressao (corrigido na main): change pode devolver stats de OUTRO uuid e o repositorio grava na linha alheia sem validar. */
+    @Test
+    void changeReturningDifferentUuidMustFailAndNotTouchOtherPlayer() throws Exception {
+        PlayerStats victim = new PlayerStats(uuid(2), 9, 9, 9, 9);
+        await(repository().save(victim));
+        CompletableFuture<PlayerStats> f = repository().update(uuid(1), s -> new PlayerStats(uuid(2), 0, 0, 0, 0));
+        assertThrows(ExecutionException.class, () -> f.get(10, TimeUnit.SECONDS),
+                "update deveria rejeitar stats com uuid diferente do solicitado");
+        assertEquals(victim, await(repository().load(uuid(2))).orElseThrow());
+    }
+
+    @Test
+    void operationsFromOneThreadAreAppliedInSubmissionOrderWithoutAwaiting() throws Exception {
+        StatsRules rules = StatsRules.defaults();
+        CompletableFuture<?> last = null;
+        for (int i = 0; i < 100; i++) {
+            repository().update(uuid(1), rules::recordKill);
+            last = repository().update(uuid(1), rules::recordGameEnd);
+        }
+        CompletableFuture<?> lastUpdate = last;
+        CompletableFuture<PlayerStats> loaded = repository().load(uuid(1)).thenApply(o -> o.orElseThrow());
+        await(lastUpdate);
+        assertEquals(new PlayerStats(uuid(1), 100, 0, 0, 100), await(loaded));
+    }
+
+    @Test
+    void saveThenLoadThenSaveSubmittedBackToBackSeeConsistentOrder() throws Exception {
+        PlayerStats a = new PlayerStats(uuid(1), 1, 0, 0, 0);
+        PlayerStats b = new PlayerStats(uuid(1), 2, 0, 0, 0);
+        repository().save(a);
+        CompletableFuture<java.util.Optional<PlayerStats>> mid = repository().load(uuid(1));
+        repository().save(b);
+        CompletableFuture<java.util.Optional<PlayerStats>> end = repository().load(uuid(1));
+        assertEquals(a, await(mid).orElseThrow());
+        assertEquals(b, await(end).orElseThrow());
+    }
+
+    // ---------- concorrencia ----------
+
+    @Test
+    void concurrentUpdatesOnManyPlayersAndMixedOperationsKeepExactCounts() throws Exception {
+        StatsRules rules = StatsRules.defaults();
+        int players = 10;
+        int perPlayer = 50;
+        List<CompletableFuture<?>> all = new ArrayList<>();
+        ExecutorService callers = Executors.newFixedThreadPool(8);   // pool proprio: join() no commonPool estoura o limite de threads
+        try {
+            for (int round = 0; round < perPlayer; round++) {
+                for (int p = 1; p <= players; p++) {
+                    int id = p;
+                    all.add(CompletableFuture.runAsync(() -> {
+                        repository().update(uuid(id), rules::recordKill).join();
+                        repository().top(RankingType.KILLS, 3).join();   // leituras intercaladas
+                        repository().load(uuid(id)).join();
+                    }, callers));
+                }
+            }
+            await(CompletableFuture.allOf(all.toArray(new CompletableFuture<?>[0])));
+        } finally {
+            callers.shutdownNow();
+        }
+        for (int p = 1; p <= players; p++) {
+            assertEquals(perPlayer, await(repository().load(uuid(p))).orElseThrow().kills(), "jogador " + p);
+        }
+        assertEquals(players, await(repository().top(RankingType.KILLS, 100)).size());
+    }
+
+    @Test
+    void concurrentSavesOfSamePlayerEndWithOneOfTheWrittenValues() throws Exception {
+        int n = 100;
+        List<CompletableFuture<?>> all = new ArrayList<>();
+        ExecutorService callers = Executors.newFixedThreadPool(8);
+        try {
+            for (int i = 0; i < n; i++) {
+                int k = i;
+                all.add(CompletableFuture.runAsync(
+                        () -> repository().save(new PlayerStats(uuid(1), k, k, k, k)).join(), callers));
+            }
+            await(CompletableFuture.allOf(all.toArray(new CompletableFuture<?>[0])));
+        } finally {
+            callers.shutdownNow();
+        }
+        PlayerStats fin = await(repository().load(uuid(1))).orElseThrow();
+        assertEquals(fin.kills(), fin.wins());
+        assertEquals(fin.kills(), fin.deaths());   // sem "linha rasgada" (campos de gravacoes diferentes)
+        assertEquals(fin.kills(), fin.gamesPlayed());
+        assertEquals(1, await(repository().top(RankingType.WINS, 10)).size());
+    }
+
+    @Test
+    void closeIsIdempotent() {
+        repository().close();
+        assertDoesNotThrow(() -> repository().close());
+    }
 }
