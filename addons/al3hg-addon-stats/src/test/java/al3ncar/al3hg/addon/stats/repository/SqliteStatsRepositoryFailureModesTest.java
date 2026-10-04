@@ -188,4 +188,102 @@ class SqliteStatsRepositoryFailureModesTest {
     }
 
     // ---------- shutdown ----------
+
+    @Test
+    void everyOperationAfterCloseFailsWithRejectedExecution() {
+        var repo = new SqliteStatsRepository(tempDir.resolve("fechado.db"));
+        repo.close();
+        List<CompletableFuture<?>> calls = List.of(
+                repo.load(uuid(1)),
+                repo.save(PlayerStats.empty(uuid(1))),
+                repo.top(RankingType.WINS, 1),
+                repo.update(uuid(1), s -> s));
+        for (CompletableFuture<?> f : calls) {
+            var ex = assertThrows(ExecutionException.class, () -> f.get(5, TimeUnit.SECONDS));
+            assertInstanceOf(RejectedExecutionException.class, ex.getCause());
+        }
+    }
+
+    @Test
+    void closeBeforeAnyOperationIsHarmlessAndCreatesNoFile() {
+        Path db = tempDir.resolve("nunca.db");
+        var repo = new SqliteStatsRepository(db);
+        repo.close();
+        repo.close();
+        assertFalse(Files.exists(db));
+    }
+
+    @Test
+    void closeWaitsForPendingWritesInsteadOfDroppingThem() throws Exception {
+        Path db = tempDir.resolve("pendentes.db");
+        var repo = new SqliteStatsRepository(db);
+        List<CompletableFuture<?>> pending = new ArrayList<>();
+        for (int i = 1; i <= 200; i++) {
+            pending.add(repo.save(new PlayerStats(uuid(i), i, 0, 0, 0)));
+        }
+        repo.close();   // sem aguardar os saves
+        for (CompletableFuture<?> f : pending) {
+            assertDoesNotThrow(() -> f.get(10, TimeUnit.SECONDS));
+        }
+        try (var reopened = new SqliteStatsRepository(db)) {
+            assertEquals(200, await(reopened.top(RankingType.KILLS, 1000)).size());
+        }
+    }
+
+    @Test
+    void closeWhileOtherThreadsKeepSubmittingNeverHangsAndEveryFutureCompletes() throws Exception {
+        var repo = new SqliteStatsRepository(tempDir.resolve("corrida.db"));
+        List<CompletableFuture<?>> futures = java.util.Collections.synchronizedList(new ArrayList<>());
+        Thread[] writers = new Thread[4];
+        for (int t = 0; t < writers.length; t++) {
+            int base = t * 10_000;
+            writers[t] = new Thread(() -> {
+                for (int i = 0; i < 300; i++) {
+                    futures.add(repo.save(new PlayerStats(uuid(base + i), 1, 1, 1, 1)));
+                }
+            });
+            writers[t].start();
+        }
+        Thread.sleep(5);
+        repo.close();
+        for (Thread w : writers) {
+            w.join(10_000);
+        }
+        for (CompletableFuture<?> f : futures) {
+            try {
+                f.get(10, TimeUnit.SECONDS);
+            } catch (ExecutionException e) {
+                assertInstanceOf(RejectedExecutionException.class, e.getCause(), "so rejeicao e aceitavel apos close");
+            }
+        }
+    }
+
+    /**
+     * Regressao (corrigido na main): close() chamado dentro de um callback de future (que roda na propria thread
+     * "al3hg-stats-sqlite") submete closeConnection() ao proprio executor e bloqueia em get(5s)
+     * esperando a si mesmo -> auto-deadlock de 5 s ate o timeout. Esperado: retornar rapido.
+     */
+    @Test
+    void closeFromInsideACompletionCallbackDoesNotBlockForTheTimeout() throws Exception {
+        var repo = new SqliteStatsRepository(tempDir.resolve("auto-close.db"));
+        AtomicLong elapsedMs = new AtomicLong(-1);
+        CompletableFuture<Void> done = repo.save(PlayerStats.empty(uuid(1))).thenRun(() -> {
+            long t0 = System.nanoTime();
+            repo.close();
+            elapsedMs.set(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - t0));
+        });
+        await(done);
+        assertTrue(elapsedMs.get() >= 0 && elapsedMs.get() < 2_000,
+                "close() dentro do callback bloqueou " + elapsedMs.get() + " ms (auto-deadlock ate o timeout de 5 s)");
+    }
+
+    @Test
+    void callbacksOfSqliteFuturesRunOnTheRepositoryThreadNotTheCaller() throws Exception {
+        try (var repo = new SqliteStatsRepository(tempDir.resolve("thread.db"))) {
+            String[] name = new String[1];
+            await(repo.save(PlayerStats.empty(uuid(1))).thenRun(() -> name[0] = Thread.currentThread().getName()));
+            // documenta o aviso do javadoc de StatsRepository: callbacks NAO estao na thread principal do Bukkit
+            assertEquals("al3hg-stats-sqlite", name[0]);
+        }
+    }
 }
