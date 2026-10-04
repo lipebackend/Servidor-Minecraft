@@ -82,10 +82,74 @@ checar_docker() {
   ok "docker compose disponível."
 }
 
+# --- Dependências (git, curl, maven, JDK 25) ----------------------------------------------------
+precisa_sudo() { command -v sudo >/dev/null 2>&1 || erro "'sudo' não encontrado, e ele é necessário para: $*"; }
+
+instalar_pacotes() {
+  local faltam=() cmd pkg
+  for par in git:git curl:curl mvn:maven; do
+    cmd="${par%%:*}"; pkg="${par##*:}"
+    command -v "$cmd" >/dev/null 2>&1 && ok "$cmd já instalado." || faltam+=("$pkg")
+  done
+  [ "${#faltam[@]}" -eq 0 ] && return 0
+  precisa_sudo "sudo dnf install ${faltam[*]}"
+  info "Instalando via dnf: ${faltam[*]}"
+  sudo dnf install -y "${faltam[@]}"
+}
+
+# Imprime a versão principal do javac em $1/bin/javac (vazio se não houver).
+versao_jdk() {
+  [ -x "$1/bin/javac" ] || return 0
+  "$1/bin/javac" -version 2>&1 | sed -n 's/^javac \([0-9]\+\).*/\1/p'
+}
+
+# Procura um JDK 25 já instalado e deixa o caminho em JAVA_HOME (retorna 1 se não achar).
+achar_jdk25() {
+  local candidato versao
+  for candidato in "${JAVA_HOME:-}" "$HOME/.local/jdk25" /usr/lib/jvm/java-25-openjdk* /usr/lib/jvm/temurin-25*; do
+    [ -n "$candidato" ] || continue
+    versao="$(versao_jdk "$candidato")"
+    if [ -n "$versao" ] && [ "$versao" -ge 25 ]; then JAVA_HOME="$candidato"; export JAVA_HOME; return 0; fi
+  done
+  return 1
+}
+
+baixar_temurin() {
+  local arq alvo="$HOME/.local/jdk25" tmp
+  case "$(uname -m)" in
+    x86_64) arq="x64" ;;
+    aarch64) arq="aarch64" ;;
+    *) erro "arquitetura não suportada para o Temurin: $(uname -m)" ;;
+  esac
+  tmp="$(mktemp -d)"
+  info "Baixando o Temurin 25 JDK ($arq) do Adoptium para $alvo ..."
+  curl -fSL "https://api.adoptium.net/v3/binary/latest/25/ga/linux/$arq/jdk/hotspot/normal/eclipse" -o "$tmp/jdk.tar.gz" \
+    || erro "falha ao baixar o Temurin 25."
+  mkdir -p "$tmp/jdk" "$(dirname "$alvo")"
+  tar -xzf "$tmp/jdk.tar.gz" -C "$tmp/jdk" --strip-components=1
+  rm -rf "$alvo" && mv "$tmp/jdk" "$alvo" && rm -rf "$tmp"
+}
+
+garantir_jdk25() {
+  if achar_jdk25; then ok "JDK 25 utilizável em $JAVA_HOME."; return 0; fi
+  if dnf info java-25-openjdk-devel >/dev/null 2>&1; then
+    precisa_sudo "sudo dnf install java-25-openjdk-devel"
+    info "Instalando java-25-openjdk-devel via dnf..."
+    sudo dnf install -y java-25-openjdk-devel
+  else
+    info "java-25-openjdk-devel não existe no dnf desta versão do Fedora; usando o Temurin."
+    baixar_temurin
+  fi
+  achar_jdk25 || erro "o JDK 25 não foi encontrado depois da instalação."
+  ok "JAVA_HOME=$JAVA_HOME (válido só durante este script; para o seu terminal: export JAVA_HOME=$JAVA_HOME)."
+}
+
 main() {
   ler_argumentos "$@"
   checar_sistema
   checar_docker
+  instalar_pacotes
+  garantir_jdk25
 }
 
 main "$@"
