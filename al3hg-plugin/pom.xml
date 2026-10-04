@@ -41,6 +41,13 @@
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- MockBukkit: simula o Paper para testar eventos e listeners (nao conhece o ASP) -->
+        <dependency>
+            <groupId>org.mockbukkit.mockbukkit</groupId>
+            <artifactId>mockbukkit-v1.21</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
