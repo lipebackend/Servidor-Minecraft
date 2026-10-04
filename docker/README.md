@@ -11,6 +11,30 @@ dentro de um contêiner, na **sua máquina** (Linux, Windows ou Mac). Não é um
 - Acesso à internet: o addon de estatísticas baixa o `sqlite-jdbc` do Maven Central ao carregar (declarado em `libraries:` no `plugin.yml`).
 - Uma conta Minecraft Java Edition **1.21.11** para entrar no servidor.
 
+## Fedora (automático)
+
+No Fedora, o `fedora-setup.sh` faz o caminho inteiro (o Docker precisa **já estar instalado**; o script não o instala):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/lipebackend/Servidor-Minecraft/main/docker/fedora-setup.sh -o fedora-setup.sh && bash fedora-setup.sh
+```
+
+Opções: `--java 21|25` (padrão 25), `--sem-subir` (prepara tudo sem `docker compose up`), `--ajuda`. Pode rodar de novo à vontade;
+`DESTINO=<pasta>` troca onde o repositório é clonado (padrão `~/Servidor-Minecraft`).
+
+O que ele faz: confere Fedora, Docker e `docker compose` (se faltar permissão, usa `sudo docker`); instala via `dnf` só o que falta
+(`git`, `curl`, `maven`, `python3`) e o JDK 25 (`java-25-openjdk-devel`, ou o Temurin 25 em `~/.local/jdk25`); clona/atualiza o
+repositório; baixa o `server.jar` (AdvancedSlimePaper 1.21.11, branch `main`, pela API de download do InfernalSuite, com SHA-256);
+gera uma **arena de teste** plana (`gerar-arena.py`), converte com o importer do ASP para `docker/data/slime_worlds/hgmapa.slime`;
+roda o `preparar.sh` e sobe o contêiner.
+
+**EULA:** o script cria `docker/data/eula.txt` com `eula=true` e avisa antes e depois. **Rodar o script significa aceitar** o
+<https://aka.ms/MinecraftEULA>; se não aceita, não rode. (`--aceito-eula` existe só por compatibilidade e não muda nada.)
+
+O que o script **não** faz: instalar o Docker; dar permissão do seu usuário ao Docker (ele avisa o `usermod -aG docker`); trocar a
+arena de teste por um mapa de verdade (coloque o seu `.slime` em `docker/data/slime_worlds/hgmapa.slime`; o script não sobrescreve um
+arquivo existente); abrir a porta no firewall; configurar lobby/BungeeCord.
+
 ## Passo a passo
 
 1. **Compilar e copiar os plugins** (na raiz do repositório):
@@ -83,10 +107,12 @@ Ao terminar a partida o plugin envia os jogadores ao servidor `lobby` via Bungee
 
 ## O que não foi testado
 
-- Os arquivos desta pasta foram escritos sem rodar o Docker no ambiente de desenvolvimento: `docker compose config`, o build
-  da imagem e o `docker compose up` **não** foram executados.
-- O servidor nunca foi iniciado com o ASP real (o JAR não é baixado automaticamente), então não se sabe se o ASP 4.2.0
-  sobe com Java 21; Java 25 também não foi validado em execução.
-- Windows, Mac e as permissões de volume no Linux (UID/GID) não foram testados.
+- `docker compose config`, o build da imagem e o `docker compose up` **não** foram executados (sem Docker no ambiente de desenvolvimento),
+  nem o `fedora-setup.sh` em um Fedora de verdade (só `bash -n`, `shellcheck` e uma execução com `docker`/`dnf`/`/etc/os-release`
+  simulados em Linux não-Fedora; a instalação via `dnf` nunca rodou).
+- Fora do Docker, o `server.jar` baixado (ASP `main`, 1.21.11) **iniciou com Java 21**, carregou o plugin `al3hg`, leu o
+  `hgmapa.slime` gerado pelo script e `/hgc fs` clonou a arena; sem jogador conectado, a partida terminou sem vencedor. Java 25 (padrão da
+  imagem) não foi exercitado no servidor; o importer rodou com JDK 25.
+- Windows, Mac e as permissões de volume no Linux (UID/GID, SELinux com `:z`) não foram testados.
 - O console via `docker compose attach` e o comportamento sem proxy BungeeCord não foram verificados.
-- Foi testado apenas o `preparar.sh` em Linux (build e cópia dos JARs) e a sintaxe com `bash -n`.
+- A arena de teste é só um piso plano de 256x256 blocos: não tem baús nem pontos de spawn, serve para validar o fluxo.
