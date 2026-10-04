@@ -15,7 +15,8 @@ services:
     ports:
       - "25565:25565"
     volumes:
-      - ./data:/server
+      # ":z" rotula o volume para o SELinux (Fedora/RHEL); nas demais distribuições não faz diferença.
+      - ./data:/server:z
     environment:
       MEMORY: ${MEMORY:-2G}
     # stdin_open + tty permitem usar o console do servidor (docker compose attach mc).
