@@ -118,7 +118,7 @@ public final class SqliteStatsRepository implements StatsRepository {
         });
     }
 
-    /** Conclui as tarefas pendentes, fecha a conexao e encerra a thread. */
+    /** Drena as tarefas pendentes (shutdown, nao shutdownNow), fecha a conexao e encerra a thread. */
     @Override
     public void close() {
         if (Thread.currentThread() == executorThread) {
@@ -136,6 +136,28 @@ public final class SqliteStatsRepository implements StatsRepository {
         }
     }
 
+    /**
+     * Encerramento imediato (ex.: onDisable sem tempo a perder): descarta o que ainda esta na fila
+     * e completa esses futures com {@link RejectedExecutionException}; a operacao em andamento e
+     * interrompida. Fecha a conexao quando a thread termina em ate 5 s; se uma operacao nao
+     * responder a interrupcao, a conexao fica aberta (nao e seguro fecha-la de outra thread).
+     * Para drenar a fila antes de fechar use {@link #close()}.
+     */
+    public void closeNow() {
+        rejectPending(executor.shutdownNow());
+        if (Thread.currentThread() == executorThread) {
+            closeConnection();
+            return;
+        }
+        try {
+            if (executor.awaitTermination(5, TimeUnit.SECONDS)) {
+                closeConnection(); // a thread do executor terminou: acesso exclusivo
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
     // ---- tudo abaixo roda somente na thread do executor ----
 
     @FunctionalInterface
@@ -144,16 +166,45 @@ public final class SqliteStatsRepository implements StatsRepository {
     }
 
     private <T> CompletableFuture<T> run(SqlTask<T> task) {
+        CompletableFuture<T> future = new CompletableFuture<>();
         try {
-            return CompletableFuture.supplyAsync(() -> {
-                try {
-                    return task.run();
-                } catch (SQLException e) {
-                    throw new CompletionException(e);
-                }
-            }, executor);
+            executor.execute(new PendingSql<>(task, future));
         } catch (RejectedExecutionException e) { // repositorio ja fechado
-            return CompletableFuture.failedFuture(e);
+            future.completeExceptionally(e);
+        }
+        return future;
+    }
+
+    /** Tarefa que guarda o proprio future, para poder ser rejeitada se descartada da fila. */
+    private static final class PendingSql<T> implements Runnable {
+        private final SqlTask<T> task;
+        private final CompletableFuture<T> future;
+
+        PendingSql(SqlTask<T> task, CompletableFuture<T> future) {
+            this.task = task;
+            this.future = future;
+        }
+
+        @Override
+        public void run() {
+            try {
+                future.complete(task.run());
+            } catch (Throwable t) {
+                future.completeExceptionally(t instanceof CompletionException ? t : new CompletionException(t));
+            }
+        }
+
+        void reject() {
+            future.completeExceptionally(
+                    new RejectedExecutionException("Repositorio encerrado antes de executar a operacao"));
+        }
+    }
+
+    private static void rejectPending(List<Runnable> dropped) {
+        for (Runnable task : dropped) {
+            if (task instanceof PendingSql<?> pending) {
+                pending.reject();
+            }
         }
     }
 
