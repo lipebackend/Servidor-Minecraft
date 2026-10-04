@@ -1,4 +1,4 @@
-package al3ncar.al3hg.events;
+package al3ncar.al3hg.listener;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -8,24 +8,24 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
-import al3ncar.al3hg.enums.StatusPartida;
-import al3ncar.al3hg.partida.Maneger;
-import al3ncar.al3hg.utils.EnviarServer;
+import al3ncar.al3hg.api.GameState;
+import al3ncar.al3hg.game.GameManager;
+import al3ncar.al3hg.util.LobbyTransfer;
 
-public class RemoverDaPartidaDead implements Listener {
+public class PlayerDeathListener implements Listener {
     @EventHandler
     public void onDeath(PlayerDeathEvent event) {
         Player p = event.getEntity();
-        Maneger.getPartida().removerJogadores(p);
+        GameManager.current().removerJogadores(p);
         p.setGameMode(GameMode.SPECTATOR);
         atualizarContador(p);
     }
 
     @SuppressWarnings("deprecation")
     public void atualizarContador(Player p) {
-        int vivos = Maneger.getPartida().getJogadoresVivos();
-        if(Maneger.getPartida().getJogadoresVivos() == 1){ 
-            Maneger.getPartida().setStatusP(StatusPartida.FINAL); 
+        int vivos = GameManager.current().getJogadoresVivos();
+        if(GameManager.current().getJogadoresVivos() == 1){ 
+            GameManager.current().setStatusP(GameState.ENDING); 
          }
         Bukkit.broadcastMessage("§eJogadores vivos: §f" + vivos);
     }
@@ -33,6 +33,6 @@ public class RemoverDaPartidaDead implements Listener {
     @EventHandler
     public void onRespwam(PlayerRespawnEvent e) {
         Player p = e.getPlayer();
-        EnviarServer.SendServer(p, "lobby");
+        LobbyTransfer.SendServer(p, "lobby");
     }
 }

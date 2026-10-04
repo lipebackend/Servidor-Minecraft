@@ -1,4 +1,4 @@
-package al3ncar.al3hg.events;
+package al3ncar.al3hg.listener;
 
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
@@ -9,7 +9,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
-public class Regem implements Listener {
+public class SoupHealListener implements Listener {
     @EventHandler
     public void UsarSopa(PlayerInteractEvent e) {
         Player player = e.getPlayer();

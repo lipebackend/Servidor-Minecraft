@@ -1,39 +1,39 @@
 package al3ncar.al3hg;
 
-import al3ncar.al3hg.events.*;
+import al3ncar.al3hg.listener.*;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import al3ncar.al3hg.mapa.RegeneretorWorld;
-import al3ncar.al3hg.command.HgCore;
-import al3ncar.al3hg.craft.Refil;
-import al3ncar.al3hg.partida.Maneger;
+import al3ncar.al3hg.arena.ArenaCleaner;
+import al3ncar.al3hg.command.HgCommand;
+import al3ncar.al3hg.craft.SoupRecipes;
+import al3ncar.al3hg.game.GameManager;
 
-public final class al3hg extends JavaPlugin implements Listener {
+public final class Al3HgPlugin extends JavaPlugin implements Listener {
     // ---------- Privetes -------------------- //
-    private static al3hg ints;
-    private final HgCore hgcore = new HgCore();
-    private final Regem rg = new Regem();
-    private final Killnotificador killnotificador = new Killnotificador();
-    private final CancelarDano cldano = new CancelarDano();
-    private final JoinManeger jn = new JoinManeger();
-    private final RemoverDaPartidaDead rdead = new RemoverDaPartidaDead();
+    private static Al3HgPlugin ints;
+    private final HgCommand hgcore = new HgCommand();
+    private final SoupHealListener rg = new SoupHealListener();
+    private final KillNotifier killnotificador = new KillNotifier();
+    private final PvpDamageListener cldano = new PvpDamageListener();
+    private final PlayerConnectionListener jn = new PlayerConnectionListener();
+    private final PlayerDeathListener rdead = new PlayerDeathListener();
     // ---------- Plugin -------------------- //
 
     @Override
     public void onEnable() {
         ints = this;
-        RegeneretorWorld.limparMapa(this,"hgmapa");
+        ArenaCleaner.limparMapa(this,"hgmapa");
         getCommand("hgc").setExecutor(hgcore);
         Bukkit.getPluginManager().registerEvents(rg, ints);
         Bukkit.getPluginManager().registerEvents(jn, ints);
         Bukkit.getPluginManager().registerEvents(rdead, ints);
         Bukkit.getPluginManager().registerEvents(killnotificador, ints);
         Bukkit.getPluginManager().registerEvents(cldano, ints);
-        Maneger.init();
+        GameManager.init();
         getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
-        Refil.RegisterRecipeMethods();
+        SoupRecipes.RegisterRecipeMethods();
     }
 
     @Override
@@ -42,7 +42,7 @@ public final class al3hg extends JavaPlugin implements Listener {
     }
 
     // ---------- Metodos -------------------- //
-    public static al3hg getInts() {
+    public static Al3HgPlugin getInts() {
         return ints;
     }
 }

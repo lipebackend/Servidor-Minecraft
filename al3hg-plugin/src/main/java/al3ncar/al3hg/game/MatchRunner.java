@@ -1,14 +1,14 @@
-package al3ncar.al3hg.partida;
+package al3ncar.al3hg.game;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 
-import al3ncar.al3hg.enums.StatusPartida;
+import al3ncar.al3hg.api.GameState;
 
-public class PartidaRolando {
+public class MatchRunner {
     public boolean Partidakk() {
-        if (Maneger.getPartida().getStatusP() == StatusPartida.MEIO) {
+        if (GameManager.current().getStatusP() == GameState.RUNNING) {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 p.setGameMode(GameMode.SURVIVAL);
             }

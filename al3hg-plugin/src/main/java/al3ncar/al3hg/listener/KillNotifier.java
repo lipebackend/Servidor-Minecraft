@@ -1,6 +1,6 @@
-package al3ncar.al3hg.events;
+package al3ncar.al3hg.listener;
 
-import al3ncar.al3hg.partida.Maneger;
+import al3ncar.al3hg.game.GameManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -8,7 +8,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
 
-public class Killnotificador implements Listener {
+public class KillNotifier implements Listener {
     @EventHandler 
     public void Notifcar(PlayerDeathEvent e){
         Player p = e.getPlayer();

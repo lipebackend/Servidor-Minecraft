@@ -1,6 +1,6 @@
 name: Al3HG
 version: '${version}'
-main: al3ncar.al3hg.al3hg
+main: al3ncar.al3hg.Al3HgPlugin
 api-version: '1.21.11'
 load: STARTUP
 author: Dedectr

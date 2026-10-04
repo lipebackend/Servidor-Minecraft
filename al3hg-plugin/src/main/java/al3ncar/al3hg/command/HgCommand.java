@@ -1,8 +1,8 @@
 package al3ncar.al3hg.command;
 
-import al3ncar.al3hg.enums.StatusPvp;
-import al3ncar.al3hg.utils.Barreiras;
-import al3ncar.al3hg.utils.MobsControillers;
+import al3ncar.al3hg.enums.PvpStatus;
+import al3ncar.al3hg.util.WorldBorderController;
+import al3ncar.al3hg.util.ArenaRules;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -10,17 +10,17 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import al3ncar.al3hg.al3hg;
-import al3ncar.al3hg.enums.StatusPartida;
-import al3ncar.al3hg.partida.Maneger;
-import al3ncar.al3hg.partida.PartidaRolando;
-import al3ncar.al3hg.utils.EnviarServer;
-import al3ncar.al3hg.utils.PrefixoC;
+import al3ncar.al3hg.Al3HgPlugin;
+import al3ncar.al3hg.api.GameState;
+import al3ncar.al3hg.game.GameManager;
+import al3ncar.al3hg.game.MatchRunner;
+import al3ncar.al3hg.util.LobbyTransfer;
+import al3ncar.al3hg.util.Messages;
 
-public class HgCore implements CommandExecutor {
-    private final StatusPartida abs = null;
-    private String ps = PrefixoC.PREFIXO;
-    private final PartidaRolando b = new PartidaRolando();
+public class HgCommand implements CommandExecutor {
+    private final GameState abs = null;
+    private String ps = Messages.PREFIXO;
+    private final MatchRunner b = new MatchRunner();
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label,
@@ -36,7 +36,7 @@ public class HgCore implements CommandExecutor {
         switch (args[0]) {
             case "reload": {
                 try {
-                    al3hg.getInts().reloadConfig();
+                    Al3HgPlugin.getInts().reloadConfig();
                     sender.sendMessage(ps + "§aConfigurações recarregadas!");
                     return true;
                 } catch (Exception e) {
@@ -53,17 +53,17 @@ public class HgCore implements CommandExecutor {
                 } catch (Exception e){
                     sender.sendMessage("Erro no comando" + e);
                 }
-                Maneger.getPartida().setStatusP(abs.MEIO);
-                Maneger.getPartida().setPvpStatus(StatusPvp.ON);
-                Barreiras.Diminuir("hgmapa", 300);
+                GameManager.current().setStatusP(GameState.RUNNING);
+                GameManager.current().setPvpStatus(PvpStatus.ON);
+                WorldBorderController.shrink("hgmapa", 300);
                 b.Partidakk();
                 return true;
             }
             case "stop": {
-                Maneger.getPartida().setStatusP(abs.FINAL);
+                GameManager.current().setStatusP(GameState.ENDING);
                 try {
                     for (Player p : Bukkit.getOnlinePlayers()) {
-                        EnviarServer.SendServer(p, "lobby");
+                        LobbyTransfer.SendServer(p, "lobby");
                     }
                 } catch (Exception e){
                     sender.sendMessage("Erro no comando" + e);
@@ -73,7 +73,7 @@ public class HgCore implements CommandExecutor {
             }
             case "rest": {
                 for (Player p : Bukkit.getOnlinePlayers()) {
-                    EnviarServer.SendServer(p, "lobby");
+                    LobbyTransfer.SendServer(p, "lobby");
                 }
                 Bukkit.getServer().shutdown();
                 return true;

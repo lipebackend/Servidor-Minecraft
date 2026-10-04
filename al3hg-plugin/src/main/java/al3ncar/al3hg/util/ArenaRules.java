@@ -1,11 +1,11 @@
-package al3ncar.al3hg.utils;
+package al3ncar.al3hg.util;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Difficulty;
 import org.bukkit.GameRule;
 import org.bukkit.World;
 
-public class MobsControillers {
+public class ArenaRules {
     public void ControlerMax(){
         World world = Bukkit.getWorld("hgmapa");
         world.setTime(12000);

@@ -1,5 +1,5 @@
-package al3ncar.al3hg.utils;
+package al3ncar.al3hg.util;
 
-public class PrefixoC {
+public class Messages {
     public static String PREFIXO = "§a[HGC] &7 ";
 }

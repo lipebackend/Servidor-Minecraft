@@ -6,13 +6,13 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapelessRecipe;
 
-import al3ncar.al3hg.al3hg;
+import al3ncar.al3hg.Al3HgPlugin;
 
-public class Refil {
+public class SoupRecipes {
     public static void RegisterRecipeMethods() {
         // Namespaces //
-        NamespacedKey SopaCocoa = new NamespacedKey(al3hg.getInts(), "sopa_de_cocoa");
-        NamespacedKey SopaCacto = new NamespacedKey(al3hg.getInts(), "sopa_de_cacto");
+        NamespacedKey SopaCocoa = new NamespacedKey(Al3HgPlugin.getInts(), "sopa_de_cocoa");
+        NamespacedKey SopaCacto = new NamespacedKey(Al3HgPlugin.getInts(), "sopa_de_cacto");
         // retorno //
         ItemStack sopaFeita = new ItemStack(Material.MUSHROOM_STEW);
         // coisas que eu registro o craft //

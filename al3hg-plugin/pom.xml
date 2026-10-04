@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
 
@@ -14,11 +12,15 @@
     </parent>
 
     <artifactId>al3hg</artifactId>
-    <packaging>jar</packaging>
-
     <name>al3HG</name>
+    <description>Plugin Hunger Games (Paper 1.21.11 + AdvancedSlimePaper). Implementa a al3hg-api.</description>
 
     <dependencies>
+        <!-- API publica (empacotada no JAR do plugin) -->
+        <dependency>
+            <groupId>al3ncar.al3hg</groupId>
+            <artifactId>al3hg-api</artifactId>
+        </dependency>
 
         <!-- Paper API -->
         <dependency>
@@ -27,19 +29,23 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- AdvancedSlimePaper API -->
+        <!-- AdvancedSlimePaper API (fornecida pelo servidor ASP) -->
         <dependency>
             <groupId>com.infernalsuite.asp</groupId>
             <artifactId>api</artifactId>
-            <version>4.2.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
-
         <defaultGoal>clean package</defaultGoal>
+        <finalName>al3hg-${project.version}</finalName>
 
         <resources>
             <resource>
@@ -49,18 +55,21 @@
         </resources>
 
         <plugins>
-
-            <!-- Java 21: versão e configuração vêm do pluginManagement do pom pai -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
-
-            <!-- JAR final -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+            </plugin>
+            <!-- JAR final: inclui al3hg-api (compile). Paper/ASP sao provided e ficam fora. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.5.3</version>
+                <configuration>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                </configuration>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -70,9 +79,6 @@
                     </execution>
                 </executions>
             </plugin>
-
         </plugins>
-
     </build>
-
 </project>

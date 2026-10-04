@@ -1,4 +1,4 @@
-package al3ncar.al3hg.mapa;
+package al3ncar.al3hg.arena;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 
 import org.bukkit.plugin.Plugin;
 
-public class RegeneretorWorld {
+public class ArenaCleaner {
 
     /**
      * Apaga a pasta do mundo direto no disco.
