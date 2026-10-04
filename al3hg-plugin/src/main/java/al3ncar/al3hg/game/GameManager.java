@@ -136,12 +136,17 @@ public final class GameManager implements HgGame {
         ArenaRules.apply(worldName, plugin.getLogger());
         players.forEach(p -> enterArena(p, GameMode.ADVENTURE));
 
-        if (skipCountdown) {
+        if (skipCountdown && !match.isOver()) {
             fsm.transition(GameState.GRACE);
             beginGrace();
         } else {
+            // Início rápido sem jogadores suficientes também passa por COUNTDOWN para poder ir direto a ENDING.
             fsm.transition(GameState.COUNTDOWN);
-            startCountdown();
+            if (skipCountdown) {
+                leaveCountdown();
+            } else {
+                startCountdown();
+            }
         }
         return StartResult.OK;
     }
@@ -270,8 +275,7 @@ public final class GameManager implements HgGame {
     private void startCountdown() {
         int[] remaining = {settings.get().countdownSeconds()};
         if (remaining[0] <= 0) {
-            fsm.transition(GameState.GRACE);
-            beginGrace();
+            leaveCountdown();
             return;
         }
         tasks.add(new BukkitRunnable() {
@@ -284,8 +288,7 @@ public final class GameManager implements HgGame {
                 int left = remaining[0]--;
                 if (left <= 0) {
                     cancel();
-                    fsm.transition(GameState.GRACE);
-                    beginGrace();
+                    leaveCountdown();
                 } else if (left <= 5 || left % 10 == 0) {
                     Messages.broadcast("§eA partida começa em §f" + left + "§e segundo(s)...");
                 }
@@ -293,14 +296,22 @@ public final class GameManager implements HgGame {
         }.runTaskTimer(plugin, 0L, 20L));
     }
 
+    /**
+     * Saída do COUNTDOWN: se não sobrou jogador suficiente ({@code isOver()}), vai direto a ENDING
+     * (sem HgStateChangeEvent para GRACE nem HgGameStartEvent); senão segue o fluxo normal para GRACE.
+     */
+    private void leaveCountdown() {
+        if (match.isOver()) {
+            endMatch(match.soleSurvivor().orElse(null), settings.get().endingDelaySeconds());
+            return;
+        }
+        fsm.transition(GameState.GRACE);
+        beginGrace();
+    }
+
     /** GRACE: SURVIVAL para os vivos, border inicial, HgGameStartEvent e agenda o fim da graça. */
     private void beginGrace() {
         HgSettings s = settings.get();
-        if (match.isOver()) {
-            // Sem jogadores suficientes (ex.: /hgc fs com 0 jogadores, ou saída durante a contagem): não deixa a partida sem vencedor.
-            endMatch(match.soleSurvivor().orElse(null), s.endingDelaySeconds());
-            return;
-        }
         for (UUID id : match.alivePlayers()) {
             Player p = Bukkit.getPlayer(id);
             if (p != null) {
