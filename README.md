@@ -1,81 +1,79 @@
 # al3HG
 
-Plugin de **Hunger Games** para Minecraft **1.21.11** (Paper/AdvancedSlimePaper).
+Plugin de **Hunger Games** para Minecraft **1.21.11** (Paper + AdvancedSlimePaper).
 
-## Visão Geral
+## Visão geral
 
-**al3HG** é um plugin que adiciona um modo Hunger Games completo ao servidor: jogadores entram no lobby, são teleportados para uma arena (carregada via schematics/slimes com AdvancedSlimePaper), lutam até sobrar um vencedor, e o plugin cuida de contagem, border, regens, remoção de mortos e envio entre servidores via BungeeCord.
+Jogadores aguardam no lobby; ao `/hgc start` o plugin cria uma **arena nova** a partir de um mapa-modelo
+`.slime` (AdvancedSlimePaper), faz a contagem, libera o PVP depois do período de graça, encolhe a border,
+anuncia o vencedor, envia todos ao lobby via BungeeCord **e só então descarta a arena**.
 
-## Tecnologias
+## Módulos (Maven multi-módulo, Java 21 de bytecode)
 
-| Tecnologia | Descrição |
-|------------|-----------|
-| **Java 21** | JDK do projeto |
-| **Maven** | Build e dependências |
-| **Paper API 1.21.11** | API principal do plugin |
-| **AdvancedSlimePaper 4.2.0** | Carregamento de mundos/schematics (`.slime`) |
-| **BungeeCord Plugin Messaging** | Envio de jogadores entre servidores |
+| Módulo | Descrição |
+|--------|-----------|
+| `al3hg-api` | Interfaces e eventos públicos (`HgGame`, `GameState`, `Hg*Event`). Sem lógica. Addons usam com escopo `provided`. |
+| `al3hg-plugin` | O plugin al3HG (artefato `al3hg`). Implementa a API e empacota o `al3hg-api` no JAR. |
 
-## Funcionalidades
+Coordenadas: `al3ncar.al3hg:al3hg-api:2.0.0-SNAPSHOT`.
 
-- **Modo Hunger Games completo** — lobby, contagem regressiva, grace period e fim de partida
-- **Gerenciamento de partida** — lista de jogadores vivos, status da partida (`INCIOS`, em andamento, etc.)
-- **Sopa de cura** — clique direito com sopa de cogumelo cura o jogador (`Regem`)
-- **Receitas customizadas** — itens especiais via `Refil.RegisterRecipeMethods()`
-- **Border do mundo** — área encolhendo durante a partida (`Borreiras`)
-- **Remoção de mortos** — elimina jogadores mortos da contagem (`RemoverDaPartidaDead`)
-- **BungeeCord** — envia jogadores para outro servidor ao final (`EnviarServer`)
+### Para addons
 
-## Arquitetura
-
-```
-src/main/java/al3ncar/al3hg/
-├── al3hg.java                 # Classe principal (JavaPlugin)
-├── command/
-│   └── HgCore.java            # Comando /hgc (fs, stop, rest, help, reload)
-├── craft/
-│   └── Refil.java             # Registro de receitas customizadas
-├── events/
-│   ├── JoinManeger.java       # Gerenciamento de entrada no jogo
-│   ├── Regem.java             # Evento de cura com sopa
-│   └── RemoverDaPartidaDead.java
-├── partida/
-│   ├── Maneger.java           # Instância única da partida
-│   ├── Partida.java           # Estado e jogadores da partida
-│   ├── PartidaRolando.java    # Lógica da partida em andamento
-│   └── StatsPartida.java      # Enum de estados
-└── utils/
-    ├── Borreiras.java         # Border encolhendo
-    ├── EnviarServer.java      # Mensagens BungeeCord
-    └── PrefixoC.java          # Prefixo das mensagens
+```xml
+<dependency>
+  <groupId>al3ncar.al3hg</groupId>
+  <artifactId>al3hg-api</artifactId>
+  <version>2.0.0-SNAPSHOT</version>
+  <scope>provided</scope>
+</dependency>
 ```
 
-## Comandos
+No `plugin.yml` do addon: `depend: [Al3HG]`. Consulta: `Bukkit.getServicesManager().load(HgGame.class)`.
+Eventos (todos síncronos, thread principal): `HgStateChangeEvent`, `HgGameStartEvent`,
+`HgPlayerEliminatedEvent`, `HgGameEndEvent`.
 
-| Comando | Permissão | Descrição |
-|---------|-----------|-----------|
-| `/hgc` | `hg.admin` | Comando principal (mostra ajuda) |
-| `/hgc fs` | `hg.admin` | Força o início rápido da partida |
-| `/hgc stop` | `hg.admin` | Para a partida e volta todos ao lobby |
-| `/hgc rest` | `hg.admin` | Reinicia a partida |
-| `/hgc reload` | `hg.admin` | Recarrega a configuração |
-| `/hgc help` | `hg.admin` | Ajuda dos comandos |
+## Máquina de estados
 
-## Permissões
+```
+WAITING -> COUNTDOWN -> GRACE -> RUNNING -> ENDING -> WAITING
+  (WAITING -> GRACE no início rápido /hgc fs; COUNTDOWN/GRACE/RUNNING -> ENDING ao terminar ou parar)
+```
 
-- `hg.admin` — acesso total aos comandos do plugin
+## Arena (AdvancedSlimePaper)
+
+- Mapa-modelo: `<raiz do servidor>/slime_worlds/hgmapa.slime` (configurável em `config.yml`), lido uma vez.
+- Cada partida: `template.clone("hg-<matchId>", loader)` + `loadWorld` na thread principal.
+- Fim: jogadores são enviados ao lobby, aguarda-se `ending.lobby-transfer-wait-seconds`, quem sobrar vai para um
+  mundo de fallback e a arena é descartada com `Bukkit.unloadWorld(nome, false)`.
+- `onDisable` descarta qualquer mundo carregado do mesmo jeito.
+
+## Comandos (`hg.admin`)
+
+| Comando | Descrição |
+|---------|-----------|
+| `/hgc start` | Prepara a arena e inicia com contagem (exige `game.min-players`) |
+| `/hgc fs` | Início rápido, sem contagem e sem mínimo de jogadores |
+| `/hgc stop` | Para a partida: envia ao lobby e descarta a arena (sem `shutdown()` imediato) |
+| `/hgc rest` | Como `stop`; com `ending.shutdown-on-rest: true` desliga o servidor **depois** do envio ao lobby |
+| `/hgc reload` | Recarrega `config.yml` e o mapa-modelo |
+| `/hgc help` | Ajuda |
 
 ## Build
 
+Requer **JDK 25+** para compilar (o `com.infernalsuite.asp:api:4.2.0-SNAPSHOT` é compilado para Java 25),
+mas o bytecode gerado é Java 21 (`-source/-target 21`).
+
 ```bash
-mvn clean package
+mvn clean package        # na raiz
+# JAR: al3hg-plugin/target/al3hg-2.0.0-SNAPSHOT.jar
 ```
 
-O JAR será gerado em `al3hg-plugin/target/al3hg-2.0.0-SNAPSHOT.jar`.
+Repositórios usados: `https://repo.papermc.io/repository/maven-public/` e
+`https://repo.infernalsuite.com/repository/maven-snapshots/`.
 
-## Tarefas
+## Documentação adicional
 
-Veja [task.md](task.md) para a lista completa de tarefas do projeto.
+- [task.md](task.md) — lista de tarefas do projeto.
 
 ## Autor
 
